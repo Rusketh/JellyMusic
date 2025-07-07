@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "ask-sdk": "^2.14.0",
+    "ask-sdk-express-adapter": "^2.14.0",
+    "binarysearch": "^1.0.1",
+    "express": "^5.1.0",
+    "fast-levenshtein": "^3.0.0"
+  }
+}
