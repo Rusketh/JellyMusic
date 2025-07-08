@@ -1,0 +1,105 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "media server",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play the album {albumname} by {artistname}",
+                        "play the album {albumname}",
+                        "play album {albumname} by {artistname} ",
+                        "play album {albumname} "
+                    ]
+                },
+                {
+                    "name": "AMAZON.PauseIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ResumeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NextIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PreviousIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play songs by {artistname}",
+                        "play artist {artistname}"
+                    ]
+                },
+                {
+                    "name": "PlaySongIntent",
+                    "slots": [
+                        {
+                            "name": "songname",
+                            "type": "AMAZON.MusicRecording"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play song {songname} by {artistname}",
+                        "play {songname} by {artistname}",
+                        "play {songname}",
+                        "play song {songname}"
+                    ]
+                },
+                {
+                    "name": "PlayPlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "play playlist {playlistname}"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}

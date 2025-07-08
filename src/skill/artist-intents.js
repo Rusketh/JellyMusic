@@ -2,9 +2,9 @@ const Config = require("../config.json");
 
 const Alexa = require('ask-sdk-core');
 
-const JellyFin = require("../jellyfin-api");
+const JellyFin = require("../jellyfin-api.js");
 
-const MusicQueue = require("../music-queue.js");
+const { SetQueue } = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -18,18 +18,20 @@ const ProcessIntent = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (slots.artistname && slots.artistname.value)
+    if (!slots.artistname || !slots.artistname.value)
     {
         const speach1 = `Which artist would you like to ${action}?`;
         const speach2 = `I didn't catch the artist name. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
+    console.log(`Requesting Artist: ${slots.artistname.value}`);
+
     const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
     if (!artists.status || !artists.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
+        const speach1 = `Which artist would you like to ${action}?`;
         const speach2 = `I didn't find an artist called ${slots.artistname.value}. ${speach1}`;
         return {status: false, speach1, speach2};
     }
@@ -40,7 +42,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     if (!songs.status || !songs.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
+        const speach1 = `Which artist would you like to ${action}?`;
         const speach2 = `I didn't find an music by the artist ${slots.artistname.value}. ${speach1}`;
         return {status: false, speach1, speach2};
     }
@@ -93,22 +95,11 @@ const CreateArtistIntent = function(intent, action, callback)
 
 const PlayArtistIntent = CreateArtistIntent(
     "PlayArtistIntent", "play",
-    async function (handlerInput, {artist, album, songs})
+    async function (handlerInput, {artist, songs})
     {
-        const { responseBuilder } = handlerInput;
-        
-        MusicQueue.Clear();
+        var speach = `Playing songs by artist ${artist.Name}, on ${Config.skill.name}`;
 
-        for(var item of songs)
-            MusicQueue.Push(item);
-
-        const {url, id} = MusicQueue.Current();
-
-        console.log("Playing: ", url);
-
-        var speach = `Playing songs by artist ${artist.Name}, on ${Config.name}`;
-
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
+        return await SetQueue(handlerInput, songs, speach);
     }
 );
 

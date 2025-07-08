@@ -12,7 +12,7 @@ const CreateHandler = function(type, callback)
             {
                 try
                 {
-                    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'type';
+                    return Alexa.getRequestType(handlerInput.requestEnvelope) === type;
                 }
                 catch(err)
                 {

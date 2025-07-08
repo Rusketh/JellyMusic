@@ -4,7 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const MusicQueue = require("../music-queue.js");
+const { SetQueue } = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -25,6 +25,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
         return {status: false, speach1, speach2};
     }
 
+    console.log(`Requesting Album: ${slots.albumname.value}`);
+
     const albums = await JellyFin.Albums.Search(slots.albumname.value);
     
     if (!albums.status || !albums.items[0])
@@ -39,6 +41,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     if (slots.artistname && slots.artistname.value)
     {
+        console.log(`Requesting Artist for Album: ${slots.artistname.value}`);
+
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
         if (!artists.status || !artists.items[0])
@@ -145,24 +149,13 @@ const CreateAlbumIntent = function(intent, action, callback)
 
 const PlayAlbumIntent = CreateAlbumIntent(
     "PlayAlbumIntent", "play",
-    async function (handlerInput, {artist, album, songs})
+    async function (handlerInput, {album, songs})
     {
-        const { responseBuilder } = handlerInput;
-        
-        MusicQueue.Clear();
-
-        for(var item of songs)
-            MusicQueue.Push(item);
-
-        const {url, id} = MusicQueue.Current();
-
-        console.log("Playing: ", url);
-
         var speach = `Playing album ${album.Name}, on ${Config.name}`;
         
         if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${Config.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
+        return await SetQueue(handlerInput, songs, speach);
     }
 );
 

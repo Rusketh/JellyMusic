@@ -7,12 +7,15 @@ const Alexa = require('ask-sdk-core');
  */
 
 const {
+    LaunchHandler,
     PlaybackNearlyFinishedHandler,
+    PlaybackStoppedHandler,
+    PlaybackStartedHandler,
     PlayButtonHandler,
     PauseButtonHandler,
     NextButtonHandler,
     PreviousButtonHandler
-} = require("./music-handlers.js");
+} = require("./control-handlers.js");
 
 /*********************************************************************************
  * Control Intents
@@ -57,9 +60,13 @@ const { PlayPlaylistIntent } = require("./playlist-intents.js");
 
 const ErrorHandler = {
     canHandle: () => true,
-    handle: function ({responseBuilder}, error)
+    handle: function (handlerInput, error)
     {
-        console.error(`Error handled:`);
+        const {responseBuilder} = handlerInput;
+
+        const type = Alexa.getRequestType(handlerInput.requestEnvelope);
+
+        console.error(`Error handled: ${type}`);
         console.error(error);
 
         const speach = "I'm sorry Dave, but I can't let you do that.";
@@ -73,6 +80,9 @@ const ErrorHandler = {
 
 const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
+        LaunchHandler,
+        PlaybackStoppedHandler,
+        PlaybackStartedHandler,
         PlaybackNearlyFinishedHandler,
         PlayButtonHandler,
         PauseButtonHandler,
@@ -93,8 +103,8 @@ const skill = Alexa.SkillBuilders.custom()
         ResumeIntent,
         NextIntent,
         PreviousIntent
-    //).addErrorHandlers(
-    //    ErrorHandler
+    ).addErrorHandlers(
+        ErrorHandler
     ).create();
 
 /*********************************************************************************

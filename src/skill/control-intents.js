@@ -1,8 +1,8 @@
 const Alexa = require('ask-sdk-core');
 
-const MusicQueue = require("../music-queue.js");
-
 const { CreateIntent } = require("./alexa-helper.js");
+
+const { ClearQueue, Resume, Pause, PlayNext, PlayPrevious } = require("../queue/alexa-queque.js");
 
 /*********************************************************************************
  * Cancel Intent
@@ -26,32 +26,7 @@ const CancelIntent = CreateIntent(
 
 const StopIntent = CreateIntent(
     "AMAZON.StopIntent",
-    async function(handlerInput)
-    {
-        const { responseBuilder } = handlerInput;
-
-        MusicQueue.Clear();
-
-        console.log("Stopping and Clearing queue");
-
-        return responseBuilder.addAudioPlayerClearQueueDirective("CLEAR_ALL").getResponse();
-    }
-);
-
-/*********************************************************************************
- * Pause Intent
- */
-
-const PauseIntent = CreateIntent(
-    "AMAZON.PauseIntent",
-    async function(handlerInput)
-    {
-        const { responseBuilder } = handlerInput;
-
-        console.log("Pasuing Music");
-
-        return responseBuilder .addAudioPlayerStopDirective() .getResponse();
-    }
+    ClearQueue
 );
 
 /*********************************************************************************
@@ -60,21 +35,16 @@ const PauseIntent = CreateIntent(
 
 const ResumeIntent = CreateIntent(
     "AMAZON.ResumeIntent",
-    async function(handlerInput)
-    {
-        const { responseBuilder } = handlerInput;
+    Resume
+);
 
-        const {id, url} = MusicQueue.Current();
+/*********************************************************************************
+ * Pause Intent
+ */
 
-        if (id && url)
-        {
-            console.log("Resuming Music");
-            return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
-        }
-
-        const speach = "There are currently no track playing.";
-        return responseBuilder.speak(speach).getResponse();
-    }
+const PauseIntent = CreateIntent(
+    "AMAZON.PauseIntent",
+    Pause
 );
 
 /*********************************************************************************
@@ -83,20 +53,7 @@ const ResumeIntent = CreateIntent(
 
 const NextIntent = CreateIntent(
     "AMAZON.NextIntent",
-    async function(handlerInput)
-    {
-        const { responseBuilder } = handlerInput;
-
-        const {next} = MusicQueue.Next();
-
-        if (next)
-        {
-            console.log("Playing: ", next.url);
-            return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.id, 0).getResponse();
-        }
-
-        return responseBuilder.getResponse();
-    }
+    PlayNext
 );
 
 /*********************************************************************************
@@ -105,20 +62,7 @@ const NextIntent = CreateIntent(
 
 const PreviousIntent = CreateIntent(
     "AMAZON.PreviousIntent",
-    async function(handlerInput)
-    {
-        const { responseBuilder } = handlerInput;
-
-        const {previous} = MusicQueue.Previous();
-
-        if (previous)
-        {
-            console.log("Playing: ", previous.url);
-            return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', previous.url, previous.id, 0).getResponse();
-        }
-
-        return responseBuilder.getResponse();
-    }
+    PlayPrevious
 );
 
 /*********************************************************************************

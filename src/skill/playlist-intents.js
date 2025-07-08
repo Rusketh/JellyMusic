@@ -4,7 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const MusicQueue = require("../music-queue.js");
+const { SetQueue } = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -18,16 +18,18 @@ const ProcessIntent = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (slots.playlistname && slots.playlistname.value)
+    if (!slots.playlistname || !slots.playlistname.value)
     {
         const speach1 = `Which playlist would you like to ${action}?`;
         const speach2 = `I didn't catch the playlist name. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
+    console.log(`Requesting Playlist: ${slots.playlistname.value}`);
+
     const playlists = await JellyFin.Playlists.Search(slots.playlistname.value);
         
-    if (!artists.playlists || !playlists.items[0])
+    if (!playlists.status || !playlists.items[0])
     {
         const speach1 = `Which playlist would you like to ${action}?`;
         const speach2 = `I didn't find a playlist called ${slots.playlistname.value}. ${speach1}`;
@@ -95,20 +97,9 @@ const PlayPlaylistIntent = CreateArtistIntent(
     "PlayPlaylistIntent", "play",
     async function (handlerInput, {playlist, songs})
     {
-        const { responseBuilder } = handlerInput;
-        
-        MusicQueue.Clear();
+        var speach = `Playing songs from playlist ${playlist.Name}, on ${Config.skill.name}`;
 
-        for(var item of songs)
-            MusicQueue.Push(item);
-
-        const {url, id} = MusicQueue.Current();
-
-        console.log("Playing: ", url);
-
-        var speach = `Playing songs from playlist ${playlist.Name}, on ${Config.name}`;
-
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
+        return await SetQueue(handlerInput, songs, speach);
     }
 );
 
