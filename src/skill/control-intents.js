@@ -5,6 +5,22 @@ const MusicQueue = require("../music-queue.js");
 const { CreateIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
+ * Cancel Intent
+ */
+
+const CancelIntent = CreateIntent(
+    "AMAZON.CancelIntent",
+    async function(handlerInput)
+    {
+        const { responseBuilder } = handlerInput;
+
+        //In theory amazon should handel this.
+
+        return responseBuilder.getResponse();
+    }
+);
+
+/*********************************************************************************
  * Stop Intent
  */
 
@@ -22,18 +38,44 @@ const StopIntent = CreateIntent(
     }
 );
 
-const CancelIntent = CreateIntent(
-    "AMAZON.CancelIntent",
-    StopIntent.handle
-);
-
 /*********************************************************************************
  * Pause Intent
  */
 
+const PauseIntent = CreateIntent(
+    "AMAZON.PauseIntent",
+    async function(handlerInput)
+    {
+        const { responseBuilder } = handlerInput;
+
+        console.log("Pasuing Music");
+
+        return responseBuilder .addAudioPlayerStopDirective() .getResponse();
+    }
+);
+
 /*********************************************************************************
  * Resume Intent
  */
+
+const ResumeIntent = CreateIntent(
+    "AMAZON.ResumeIntent",
+    async function(handlerInput)
+    {
+        const { responseBuilder } = handlerInput;
+
+        const {id, url} = MusicQueue.Current();
+
+        if (id && url)
+        {
+            console.log("Resuming Music");
+            return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
+        }
+
+        const speach = "There are currently no track playing.";
+        return responseBuilder.speak(speach).getResponse();
+    }
+);
 
 /*********************************************************************************
  * Next Intent
@@ -58,11 +100,36 @@ const NextIntent = CreateIntent(
 );
 
 /*********************************************************************************
+ * Previous Intent
+ */
+
+const PreviousIntent = CreateIntent(
+    "AMAZON.PreviousIntent",
+    async function(handlerInput)
+    {
+        const { responseBuilder } = handlerInput;
+
+        const {previous} = MusicQueue.Previous();
+
+        if (previous)
+        {
+            console.log("Playing: ", previous.url);
+            return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', previous.url, previous.id, 0).getResponse();
+        }
+
+        return responseBuilder.getResponse();
+    }
+);
+
+/*********************************************************************************
  * Exports
  */
 
 module.exports = {
     StopIntent,
     CancelIntent,
+    PauseIntent,
+    PreviousIntent,
+    ResumeIntent,
     NextIntent
 };

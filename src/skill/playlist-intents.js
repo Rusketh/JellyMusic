@@ -18,38 +18,38 @@ const ProcessIntent = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (slots.artistname && slots.artistname.value)
+    if (slots.playlistname && slots.playlistname.value)
     {
-        const speach1 = `Which artist would you like to ${action}?`;
-        const speach2 = `I didn't catch the artist name. ${speach1}`;
+        const speach1 = `Which playlist would you like to ${action}?`;
+        const speach2 = `I didn't catch the playlist name. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
-    const artists = await JellyFin.Artists.Search(slots.artistname.value);
+    const playlists = await JellyFin.Playlists.Search(slots.playlistname.value);
         
-    if (!artists.status || !artists.items[0])
+    if (!artists.playlists || !playlists.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an artist called ${slots.artistname.value}. ${speach1}`;
+        const speach1 = `Which playlist would you like to ${action}?`;
+        const speach2 = `I didn't find a playlist called ${slots.playlistname.value}. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
-    const artist = artists.items[0];
+    const playlist = playlists.items[0];
 
-    const songs = await JellyFin.Music({artistIds: artist.Id});
+    const songs = await JellyFin.Music.ByPlayList(playlist.Name);
 
     if (!songs.status || !songs.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an music by the artist ${slots.artistname.value}. ${speach1}`;
+        const speach1 = `Which playlist would you like to ${action}?`;
+        const speach2 = `The playlist ${slots.artistname.value} is empty. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
-    return {status: true, artist, songs: songs.items};
+    return {status: true, playlist, songs: songs.items};
 };
 
 /*********************************************************************************
- * Create Album Intent Handler
+ * Create Playlist Intent Handler
  */
 
 const CreateArtistIntent = function(intent, action, callback)
@@ -91,9 +91,9 @@ const CreateArtistIntent = function(intent, action, callback)
  * Play Artist Intent
  */
 
-const PlayArtistIntent = CreateArtistIntent(
-    "PlayArtistIntent", "play",
-    async function (handlerInput, {artist, album, songs})
+const PlayPlaylistIntent = CreateArtistIntent(
+    "PlayPlaylistIntent", "play",
+    async function (handlerInput, {playlist, songs})
     {
         const { responseBuilder } = handlerInput;
         
@@ -106,7 +106,7 @@ const PlayArtistIntent = CreateArtistIntent(
 
         console.log("Playing: ", url);
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${Config.name}`;
+        var speach = `Playing songs from playlist ${playlist.Name}, on ${Config.name}`;
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
     }
@@ -116,4 +116,4 @@ const PlayArtistIntent = CreateArtistIntent(
  * Exports
  */
 
-module.exports = { PlayArtistIntent };
+module.exports = { PlayPlaylistIntent };

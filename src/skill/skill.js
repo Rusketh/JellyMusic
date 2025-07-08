@@ -3,18 +3,53 @@ const Alexa = require('ask-sdk-core');
 //https://github.com/alexa-samples/skill-sample-nodejs-audio-player/blob/mainline/lambda/index.js
 
 /*********************************************************************************
- * Load Handlers
+ * Music Handlers
  */
 
-const { PlaybackNearlyFinishedHandler } = require("./music-handlers.js");
+const {
+    PlaybackNearlyFinishedHandler,
+    PlayButtonHandler,
+    PauseButtonHandler,
+    NextButtonHandler,
+    PreviousButtonHandler
+} = require("./music-handlers.js");
 
 /*********************************************************************************
- * Load Intents
+ * Control Intents
  */
 
-const { CancelIntent, StopIntent, NextIntent } = require("./control-intents.js");
+const {
+    StopIntent,
+    CancelIntent,
+    PauseIntent,
+    ResumeIntent,
+    NextIntent,
+    PreviousIntent
+} = require("./control-intents.js");
+
+/*********************************************************************************
+ * Album Intents
+ */
 
 const { PlayAlbumIntent } = require("./album-intents.js");
+
+/*********************************************************************************
+ * Artist Intents
+ */
+
+const { PlayArtistIntent } = require("./artist-intents.js");
+
+/*********************************************************************************
+ * Song Intents
+ */
+
+const { PlaySongIntent } = require("./song-intents.js");
+
+/*********************************************************************************
+ * Playlist Intents
+ */
+
+const { PlayPlaylistIntent } = require("./playlist-intents.js");
 
 /*********************************************************************************
  * Error Handler
@@ -39,10 +74,25 @@ const ErrorHandler = {
 const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         PlaybackNearlyFinishedHandler,
+        PlayButtonHandler,
+        PauseButtonHandler,
+        NextButtonHandler,
+        PreviousButtonHandler,
+
         PlayAlbumIntent,
-        CancelIntent,
+
+        PlayArtistIntent,
+
+        PlaySongIntent,
+
+        PlayPlaylistIntent,
+
         StopIntent,
-        NextIntent
+        CancelIntent,
+        PauseIntent,
+        ResumeIntent,
+        NextIntent,
+        PreviousIntent
     //).addErrorHandlers(
     //    ErrorHandler
     ).create();

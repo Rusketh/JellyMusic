@@ -171,35 +171,3 @@ const PlayAlbumIntent = CreateAlbumIntent(
  */
 
 module.exports = { PlayAlbumIntent };
-
-
-//shuffle album {albumname} on jellyfin music
-//queue album {albumname} on jellyfin music
-
-
-
-//Album:
-//
-//Play songs from $ on jellyfin
-
-//Artist:
-//Play Artist $ on jellyfin
-//Play songs by $ on jellyfin
-//Play songs from $  on jellyfin
-
-//Song:
-//play song $ on jellyfin
-
-//Genre
-//Play genre $ on jellyfin
-//Play some $ on jellyfin
-
-//Anythig:
-//Play $ on jellyfin -> [Song] [Playlist] [Album] [Aritst] [Genre]
-
-//Other:
-//Stop
-//Pause
-//Resume
-//Next
-//Previous

@@ -19,6 +19,8 @@ const asStreamURL = function(song)
  * Create a Playlist
  */
 
+var history = [ ];
+
 var queue = [ ];
 
 /*********************************************************************************
@@ -27,6 +29,7 @@ var queue = [ ];
 
 const Clear = function()
 {
+    history = [ ];
     queue = [ ];
 };
 
@@ -58,8 +61,27 @@ const Current = function()
 
 const Next = function()
 {
-    return { current : queue.shift(), next: queue[0] };
+    const current = queue.shift();
+
+    if (current) history.push(current);
+
+    return { current, next: queue[0] };
 };
+
+/*********************************************************************************
+ * Previous
+ */
+
+const Previous = function()
+{
+    const current = queue[0];
+
+    const previous = history.pop();
+
+    queue.unshift(previous);
+
+    return { current, previous };
+}
 
 /*********************************************************************************
  * Exports
@@ -69,5 +91,6 @@ module.exports = {
     Current,
     Clear,
     Push,
-    Next
+    Next,
+    Previous
 };

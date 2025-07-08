@@ -18,41 +18,29 @@ const ProcessIntent = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (slots.artistname && slots.artistname.value)
+    if (slots.songname && slots.songname.value)
     {
-        const speach1 = `Which artist would you like to ${action}?`;
-        const speach2 = `I didn't catch the artist name. ${speach1}`;
+        const speach1 = `Which song would you like to ${action}?`;
+        const speach2 = `I didn't catch the song name. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
-    const artists = await JellyFin.Artists.Search(slots.artistname.value);
-        
-    if (!artists.status || !artists.items[0])
-    {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an artist called ${slots.artistname.value}. ${speach1}`;
-        return {status: false, speach1, speach2};
-    }
-
-    const artist = artists.items[0];
-
-    const songs = await JellyFin.Music({artistIds: artist.Id});
+    const songs = await JellyFin.Music(slots.songname.value);
 
     if (!songs.status || !songs.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an music by the artist ${slots.artistname.value}. ${speach1}`;
+        const speach1 = `Which song would you like to ${action}?`;
+        const speach2 = `I didn't find a song called ${slots.songname.value}. ${speach1}`;
         return {status: false, speach1, speach2};
     }
 
-    return {status: true, artist, songs: songs.items};
+    return {status: true, song: songs.items[0]};
 };
-
 /*********************************************************************************
  * Create Album Intent Handler
  */
 
-const CreateArtistIntent = function(intent, action, callback)
+const CreateSongIntent = function(intent, action, callback)
 {
     return CreateIntent(
         intent,
@@ -91,22 +79,22 @@ const CreateArtistIntent = function(intent, action, callback)
  * Play Artist Intent
  */
 
-const PlayArtistIntent = CreateArtistIntent(
-    "PlayArtistIntent", "play",
-    async function (handlerInput, {artist, album, songs})
+const PlaySongIntent = CreateSongIntent(
+    "PlaySongIntent", "play",
+    async function (handlerInput, {song})
     {
         const { responseBuilder } = handlerInput;
         
         MusicQueue.Clear();
 
-        for(var item of songs)
-            MusicQueue.Push(item);
+        MusicQueue.Push(song);
 
         const {url, id} = MusicQueue.Current();
 
         console.log("Playing: ", url);
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${Config.name}`;
+        var speach = `Playing ${song.Name}, on ${Config.name}`;
+        if (song.AlbumArtist) speach = `Playing ${song.Name} by ${song.AlbumArtist}, on ${Config.skill.name}`;
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective('REPLACE_ALL', url, id, 0).getResponse();
     }
@@ -116,4 +104,4 @@ const PlayArtistIntent = CreateArtistIntent(
  * Exports
  */
 
-module.exports = { PlayArtistIntent };
+module.exports = { PlaySongIntent };
