@@ -11,6 +11,6 @@ EXPOSE 4141
 ENV JELLYFIN_HOST="your_jellyfin_host_here"
 ENV JELLYFIN_KEY="your_jellyfin_api_key_here"
 ENV SKILL_NAME="Jelly Music"
-ENV PORT="4141" # Default port for the Express app inside the container
+ENV PORT="4141"
 
 CMD ["npm", "start"]
