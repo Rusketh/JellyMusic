@@ -4,7 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const { SetQueue } = require("../queue/alexa-queque.js");
+const AlexaQueue = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -145,7 +145,23 @@ const PlaySongIntent = CreateSongIntent(
         
         if (song.AlbumArtist) speach = `Playing ${song.Name} by ${song.AlbumArtist}, on ${Config.skill.name}`;
 
-        return await SetQueue(handlerInput, songs, speach);
+        return await AlexaQueue.InjectItems(handlerInput, [song], speach);
+    }
+);
+
+/*********************************************************************************
+ * Queue Artist Intent
+ */
+
+const QueueSongIntent = CreateSongIntent(
+    "QueueSongIntent", "queue",
+    async function (handlerInput, {song})
+    {
+        var speach = `Added ${song.Name}, to the queue.`;
+        
+        if (song.AlbumArtist) speach = `Added ${song.Name} by ${song.AlbumArtist}, to the queue.`;
+
+        return await AlexaQueue.QueueItems(handlerInput, [song], speach);
     }
 );
 
@@ -153,4 +169,7 @@ const PlaySongIntent = CreateSongIntent(
  * Exports
  */
 
-module.exports = { PlaySongIntent };
+module.exports = {
+    PlaySongIntent,
+    QueueSongIntent
+};

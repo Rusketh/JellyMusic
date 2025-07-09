@@ -1,4 +1,4 @@
-const { ClearQueue, Stop, Start, Resume, Pause, QueueNext, PlayNext, PlayPrevious } = require("../queue/alexa-queque.js");
+const AlexaQueue = require("../queue/alexa-queque.js");
 
 const { CreateHandler } = require("./alexa-helper.js");
 
@@ -8,7 +8,7 @@ const { CreateHandler } = require("./alexa-helper.js");
 
 const LaunchHandler = CreateHandler(
     "LaunchRequest",
-    ClearQueue
+    AlexaQueue.ClearQueue
 );
 
 /*********************************************************************************
@@ -17,7 +17,7 @@ const LaunchHandler = CreateHandler(
 
 const PlaybackNearlyFinishedHandler = CreateHandler(
     "AudioPlayer.PlaybackNearlyFinished",
-    QueueNext
+    AlexaQueue.QueueNext
 );
 
 /*********************************************************************************
@@ -26,7 +26,7 @@ const PlaybackNearlyFinishedHandler = CreateHandler(
 
 const PlaybackStoppedHandler = CreateHandler(
     "AudioPlayer.PlaybackStopped",
-    Stop
+    AlexaQueue.Stop
 );
 
 /*********************************************************************************
@@ -35,7 +35,7 @@ const PlaybackStoppedHandler = CreateHandler(
 
 const PlaybackStartedHandler = CreateHandler(
     "AudioPlayer.PlaybackStarted",
-    Start
+    AlexaQueue.Start
 );
 
 /*********************************************************************************
@@ -44,7 +44,7 @@ const PlaybackStartedHandler = CreateHandler(
 
 const PlayButtonHandler = CreateHandler(
     "PlaybackController.PlayCommandIssued",
-    Resume
+    AlexaQueue.Resume
 );
 
 /*********************************************************************************
@@ -53,7 +53,7 @@ const PlayButtonHandler = CreateHandler(
 
 const PauseButtonHandler = CreateHandler(
     "PlaybackController.PauseCommandIssued",
-    Pause
+    AlexaQueue.Pause
 );
 
 /*********************************************************************************
@@ -62,7 +62,7 @@ const PauseButtonHandler = CreateHandler(
 
 const NextButtonHandler = CreateHandler(
     "PlaybackController.NextCommandIssued",
-    PlayNext
+    AlexaQueue.PlayNext
 );
 
 /*********************************************************************************
@@ -71,7 +71,7 @@ const NextButtonHandler = CreateHandler(
 
 const PreviousButtonHandler = CreateHandler(
     "PlaybackController.PreviousCommandIssued",
-    PlayPrevious
+    AlexaQueue.PlayPrevious
 );
 
 /*********************************************************************************

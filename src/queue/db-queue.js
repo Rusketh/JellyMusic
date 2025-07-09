@@ -16,6 +16,7 @@ try
 {
     const query = `CREATE TABLE IF NOT EXISTS queue(
         key INTEGER PRIMARY KEY AUTOINCREMENT,
+        position INT DEFAULT 0,
         itemID VARCHAR(64),
         queueID VARCHAR(64),
         deviceID VARCHAR(512),
@@ -92,13 +93,13 @@ const GetTrack = async function(deviceID, isQueued = false, offset = 0) {
     try
     {
         const query = `
-            SELECT key, itemID, queueID, deviceID, queued, createdAt
+            SELECT key, itemID, queueID, deviceID, queued, position
             FROM queue
             WHERE
                 deviceID = $deviceID AND
                 queued = $isQueued
             ORDER BY
-                createdAt DESC
+                position DESC
             LIMIT 1 OFFSET $offset;`;
 
         const result = Database.prepare(query).get({
@@ -110,9 +111,9 @@ const GetTrack = async function(deviceID, isQueued = false, offset = 0) {
         if (!result)
             return { status: true, track: null };
 
-        const { key, itemID, queueID } = result;
+        const { itemID, queueID, position } = result;
 
-        return { status: true, key, itemID, queueID, deviceID };
+        return { status: true, position, itemID, queueID, deviceID };
 
     }
     catch (error)
@@ -120,7 +121,7 @@ const GetTrack = async function(deviceID, isQueued = false, offset = 0) {
         console.error(`Error fetching track for device ${deviceID}, queued: ${isQueued}, offset: ${offset}.`);
         console.error(error);
 
-        return { status: false, track: null, error: error.message };
+        return { status: false };
     }
 };
 
@@ -128,15 +129,15 @@ const GetTrack = async function(deviceID, isQueued = false, offset = 0) {
  * AddToQueue
  */
 
-const AddToQueue = async function(deviceID, itemID)
+const AddToQueue = async function(deviceID, itemID, position = 0)
 {
     try
     {
         const queueID = crypto.randomUUID();
 
-        const query = `INSERT INTO queue (queueID, itemID, deviceID) VALUES (?, ?, ?)`;
+        const query = `INSERT INTO queue (position, queueID, itemID, deviceID) VALUES (?, ?, ?, ?)`;
 
-        const result = Database.prepare(query).run(queueID, itemID, deviceID);
+        const result = Database.prepare(query).run(position, queueID, itemID, deviceID);
 
         console.log(`Successfully inserted item ${itemID} into queue. (${result.lastInsertRowid})`);
         
@@ -191,6 +192,172 @@ const SetQueuedStatus = async function(deviceID, queueID, value)
 };
 
 /*********************************************************************************
+ * Get Current Queue
+ */
+
+const GetQueue = async function(deviceID)
+{
+    try
+    {
+        const query = `
+        SELECT key, itemID, queueID, deviceID, queued, position
+        FROM queue
+        WHERE
+            deviceID = $deviceID AND
+            queued = TRUE
+        ORDER BY
+            position DESC;`;
+
+        const items = [ ];
+        const results = Database.prepare(query).all({ $deviceID: deviceID });
+
+        if (results)
+            for(var { position, itemID, queueID } in results)
+                items.push({ status: true, position, itemID, queueID, deviceID })
+        
+        return {status: true, items};
+    }
+    catch(error)
+    {
+        console.error(`Error changing status of ${queueID} into for ${deviceID}:`);
+        console.error(error);
+
+        return {status: false};
+    }
+};
+
+/*********************************************************************************
+ * Get Top Queue Position
+ */
+
+const GetLastPosition = async function(deviceID)
+{
+    try
+    {
+        const query = `
+            SELECT position
+            FROM queue
+            WHERE
+                deviceID = $deviceID AND
+            ORDER BY
+                position DESC
+            LIMIT 1;`;
+
+        const result = Database.prepare(query).get({$deviceID: deviceID});
+
+        return { status: true, position: result.position || 0 };
+
+    }
+    catch (error)
+    {
+        console.error(`Error fetching last position for device ${deviceID}.`);
+        console.error(error);
+
+        return { status: false, position: 0 };
+    }
+};
+
+/*********************************************************************************
+ * Shuffle Queue
+ */
+
+const ShuffleItems = function(items)
+{
+    const values = items.map((item) => item.position);
+        
+    for (let i = values.length - 1; i > 0; i--)
+    {   //Fisher-Yates Shuffle
+        const j = Math.floor(Math.random() * (i + 1))
+        [values[i], values[j]] = [values[j], values[i]];
+    }
+
+    items.forEach((item) => item.position = values.pop());
+    
+    items.sort((a, b) => a.position - b.position);
+
+    return items;
+};
+
+const ShuffleQueue = async function(deviceID)
+{
+    try
+    {
+        const {status, items} = await GetQueue(deviceID);
+
+        if (!status || !items || items.length === 0)
+            return {status: false};
+
+        ShuffleItems(items);
+
+        try
+        {
+            Database.exec("BEGIN;");
+            
+            const query = `UPDATE queue SET position = $position WHERE deviceID = $deviceID AND queueID = $queueID;`;
+            const update = Database.prepare(query);
+
+            for(var {queueID, position} of items)
+                update.run({
+                    $deviceID: deviceID,
+                    $queueID: queueID,
+                    $position: position
+                });
+
+            Database.exec("COMMIT;");
+
+            return {status: true};
+        }
+        catch(error)
+        {
+            Database.exec("ROLLBACK;");
+            
+            throw error;
+        }
+    }
+    catch (error)
+    {
+        console.error(`Error shuffling queue for device ${deviceID}.`);
+        console.error(error);
+
+        return {status: false};
+    }
+};
+
+/*********************************************************************************
+ * Shift Queue
+ */
+
+const ShiftQueue = async function(deviceID, position = 0, offset = 1)
+{
+    try
+    {
+        const query = `
+            UPDATE queue
+            SET
+                queued = queued + $offset
+            WHERE
+                deviceID = $deviceID AND
+                position >= $position;
+        `;
+
+        Database.prepare(query).run({
+            $deviceID: deviceID,
+            $position: position,
+            $offset: offset
+        });
+
+        return {status: true};
+    }
+    catch(error)
+    {
+        console.error(`Error shifting queue for device ${deviceID}.`);
+        console.error(error);
+
+        return {status: false};
+    }
+};
+
+/*********************************************************************************
  * Exports
  */
 
@@ -199,5 +366,9 @@ module.exports = {
     RemoveFromQueue,
     GetTrack,
     AddToQueue,
-    SetQueuedStatus
+    SetQueuedStatus,
+    GetLastPosition,
+    ShuffleItems,
+    ShuffleQueue,
+    ShiftQueue
 };

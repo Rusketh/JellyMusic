@@ -4,7 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const { SetQueue } = require("../queue/alexa-queque.js");
+const AlexaQueue = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -155,7 +155,39 @@ const PlayAlbumIntent = CreateAlbumIntent(
         
         if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${Config.skill.name}`;
 
-        return await SetQueue(handlerInput, songs, speach);
+        return await AlexaQueue.InjectItems(handlerInput, songs, speach);
+    }
+);
+
+/*********************************************************************************
+ * Shuffle Album Intent
+ */
+
+const ShuffleAlbumIntent = CreateAlbumIntent(
+    "ShuffleAlbumIntent", "shuffling",
+    async function (handlerInput, {album, songs})
+    {
+        var speach = `Shuffling album ${album.Name}, on ${Config.name}`;
+        
+        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${Config.skill.name}`;
+
+        return await AlexaQueue.SetQueueShuffled(handlerInput, songs, speach);
+    }
+);
+
+/*********************************************************************************
+ * Queue Album Intent
+ */
+
+const QueueAlbumIntent = CreateAlbumIntent(
+    "QueueAlbumIntent", "queue",
+    async function (handlerInput, {album, songs})
+    {
+        var speach = `Added album ${album.Name}, to the queue.`;
+        
+        if (album.AlbumArtist) speach = `Added album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+
+        return await AlexaQueue.QueueItems(handlerInput, songs, speach);
     }
 );
 
@@ -163,4 +195,8 @@ const PlayAlbumIntent = CreateAlbumIntent(
  * Exports
  */
 
-module.exports = { PlayAlbumIntent };
+module.exports = {
+    PlayAlbumIntent,
+    ShuffleAlbumIntent,
+    QueueAlbumIntent
+};

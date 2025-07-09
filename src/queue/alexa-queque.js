@@ -196,6 +196,46 @@ const PlayPrevious = async function (handlerInput)
 };
 
 /*********************************************************************************
+ * Queue Items
+ */
+
+const QueueItems = async function (handlerInput, items, speach)
+{
+    var { responseBuilder, requestEnvelope } = handlerInput;
+    
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+    
+    console.log(`queueing ${items.length} items on Alexa: ${deviceID}`);
+
+    await MusicQueue.AddItems(deviceID, items);
+
+    if (speach)
+        responseBuilder = responseBuilder.speak(speach);
+     
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * Inject Items
+ */
+
+const InjectItems = async function (handlerInput, items, speach)
+{
+    var { responseBuilder, requestEnvelope } = handlerInput;
+    
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+    
+    console.log(`Playing ${items.length} items on Alexa: ${deviceID}`);
+
+    await MusicQueue.InjectItems(deviceID, items);
+
+    if (speach)
+        responseBuilder = responseBuilder.speak(speach);
+     
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
  * Set Queue
  */
 
@@ -223,6 +263,33 @@ const SetQueue = async function (handlerInput, items, speach)
 };
 
 /*********************************************************************************
+ * Set Queue Shuffled
+ */
+
+const SetQueueShuffled = async function (handlerInput, items, speach)
+{
+    var { responseBuilder, requestEnvelope } = handlerInput;
+    
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+    
+    console.log(`setting queue on Alexa: ${deviceID}`);
+
+    await MusicQueue.Clear(deviceID);
+
+    await MusicQueue.AddShuffledItems(deviceID, items);
+
+    const [current, next] = await MusicQueue.Next(deviceID);
+
+    if (!next) //In theory will never happen.
+        return responseBuilder.getResponse();
+
+    if (speach)
+        responseBuilder = responseBuilder.speak(speach);
+     
+    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+};
+
+/*********************************************************************************
  * Exports
  */
 
@@ -235,5 +302,8 @@ module.exports = {
     QueueNext,
     PlayNext,
     PlayPrevious,
-    SetQueue
+    QueueItems,
+    InjectItems,
+    SetQueue,
+    SetQueueShuffled
 };

@@ -2,7 +2,7 @@ const Alexa = require('ask-sdk-core');
 
 const { CreateIntent } = require("./alexa-helper.js");
 
-const { ClearQueue, Resume, Pause, PlayNext, PlayPrevious } = require("../queue/alexa-queque.js");
+const AlexaQueue = require("../queue/alexa-queque.js");
 
 /*********************************************************************************
  * Cancel Intent
@@ -26,7 +26,7 @@ const CancelIntent = CreateIntent(
 
 const StopIntent = CreateIntent(
     "AMAZON.StopIntent",
-    ClearQueue
+    AlexaQueue.ClearQueue
 );
 
 /*********************************************************************************
@@ -35,7 +35,7 @@ const StopIntent = CreateIntent(
 
 const ResumeIntent = CreateIntent(
     "AMAZON.ResumeIntent",
-    Resume
+    AlexaQueue.Resume
 );
 
 /*********************************************************************************
@@ -44,7 +44,7 @@ const ResumeIntent = CreateIntent(
 
 const PauseIntent = CreateIntent(
     "AMAZON.PauseIntent",
-    Pause
+    AlexaQueue.Pause
 );
 
 /*********************************************************************************
@@ -53,7 +53,7 @@ const PauseIntent = CreateIntent(
 
 const NextIntent = CreateIntent(
     "AMAZON.NextIntent",
-    PlayNext
+    AlexaQueue.PlayNext
 );
 
 /*********************************************************************************
@@ -62,7 +62,7 @@ const NextIntent = CreateIntent(
 
 const PreviousIntent = CreateIntent(
     "AMAZON.PreviousIntent",
-    PlayPrevious
+    AlexaQueue.PlayPrevious
 );
 
 /*********************************************************************************

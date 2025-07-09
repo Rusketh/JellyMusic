@@ -4,6 +4,8 @@ const JellyFin = require("../jellyfin-api.js");
 
 const Queue = require("./db-queue.js");
 
+const GAP = 10;
+
 /*********************************************************************************
  * Convert song to URL
  */
@@ -30,41 +32,111 @@ const Clear = function(deviceID)
  * Add to queue
  */
 
-const AddItem = async function (deviceID, item)
+const AddItem = async function (deviceID, item, position)
 {
-    const {status, queueID, itemID} = await Queue.AddToQueue(deviceID, item.Id);
+    if (!position)
+        position = (await Queue.GetLastPosition(deviceID)).position + GAP;
+
+    const {status, queueID, itemID} = await Queue.AddToQueue(deviceID, item.Id, position);
 
     if (!result.status) return undefined;
 
-    return { queueID, deviceID, itemID, item, url: asStreamURL(item) };
+    return { position, queueID, deviceID, itemID, item, url: asStreamURL(item) };
 };
 
 /*********************************************************************************
  * Add all to queue
  */
 
-const AddItems = async function(deviceID, items)
+const AddItems = async function(deviceID, items, position)
 {
+    if (!position)
+        position = (await Queue.GetLastPosition(deviceID)).position + GAP;
+
     const added = [];
 
     for(let item of items)
     {
-        const result = await Queue.AddToQueue(deviceID, item.Id);
+        const result = await Queue.AddToQueue(deviceID, item.Id, position);
         
-        if (result) added.push(result);
+        if (result) 
+        {
+            position += GAP;
+            added.push(result);
+        }
     }
 
     return added;
 };
 
 /*********************************************************************************
+ * Inject items (at the start of the queue).
+ */
+
+const InjectItems = async function(deviceID, items, position)
+{
+    if (items.length == 0)
+        return {status: true};
+
+    if (!position)
+    {
+        const {status, position} = await Queue.GetTrack(deviceID, true, 0);
+        position = status && next ? next.position : 1;
+    }
+    
+    var {status} = await Queue.ShiftQueue(deviceID, position, items.length);
+    
+    if (!status) return {status: false};
+    
+    var {status} = await AddItems(deviceID, items, position);
+    
+    if (!status) return {status: false};
+    
+    return {status: true};
+};
+
+
+/*********************************************************************************
+ * Add all to queue
+ */
+
+const AddShuffledItems = async function(deviceID, items, position)
+{
+    if (!position)
+        position = (await Queue.GetLastPosition(deviceID)).position + GAP;
+
+    for(let item of items)
+    {
+        item.position = position;
+        position += GAP;
+    }
+
+    Queue.ShuffleItems(items);
+
+    const added = [];
+
+    for(let item of items)
+    {
+        const result = await Queue.AddToQueue(deviceID, item.Id, item.position);
+        if (result)  added.push(result);
+    }
+
+    return added;
+};
+
+/*********************************************************************************
+ * Shuffle Queue
+ */
+
+const ShuffleQueue = Queue.ShuffleQueue;
+
+/*********************************************************************************
  * Get Current Item
  */
 
-
 const GetItem = async function(deviceID, isQueued = false, offset = 0)
 {
-    const {status, itemID, queueID} = await Queue.GetTrack(deviceID, isQueued, offset);
+    const {status, position, itemID, queueID} = await Queue.GetTrack(deviceID, isQueued, offset);
 
     if (!status) return undefined;
 
@@ -72,13 +144,13 @@ const GetItem = async function(deviceID, isQueued = false, offset = 0)
 
     if (!result || !result.items[0])
     {
-        await Queue.RemoveFromQueue(deviceID, queueID); //this probably does not need to be awaited.
+        await Queue.RemoveFromQueue(deviceID, queueID);
         return undefined;
     }
 
     const item = result.items[0];
 
-    return { queueID, deviceID, itemID, item, url: asStreamURL(item) };
+    return { position, queueID, deviceID, itemID, item, url: asStreamURL(item) };
 };
 
 /*********************************************************************************
@@ -131,6 +203,9 @@ module.exports = {
     Clear,
     AddItem,
     AddItems,
+    InjectItems,
+    AddShuffledItems,
+    ShuffleQueue,
     GetCurrentItem,
     GetNextItem,
     GetPreviousItem,

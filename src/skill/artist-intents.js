@@ -4,7 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api.js");
 
-const { SetQueue } = require("../queue/alexa-queque.js");
+const AlexaQueue = require("../queue/alexa-queque.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
 
@@ -99,7 +99,35 @@ const PlayArtistIntent = CreateArtistIntent(
     {
         var speach = `Playing songs by artist ${artist.Name}, on ${Config.skill.name}`;
 
-        return await SetQueue(handlerInput, songs, speach);
+        return await AlexaQueue.InjectItems(handlerInput, songs, speach);
+    }
+);
+
+/*********************************************************************************
+ * Shuffle Artist Intent
+ */
+
+const ShuffleArtistIntent = CreateArtistIntent(
+    "ShuffleArtistIntent", "shuffling",
+    async function (handlerInput, {artist, songs})
+    {
+        var speach = `Shuffling songs by artist ${artist.Name}, on ${Config.skill.name}`;
+
+        return await AlexaQueue.SetQueueShuffled(handlerInput, songs, speach);
+    }
+);
+
+/*********************************************************************************
+ * Queue Artist Intent
+ */
+
+const QueueArtistIntent = CreateArtistIntent(
+    "QueueArtistIntent", "queue",
+    async function (handlerInput, {artist, songs})
+    {
+        var speach = `Added ${songs.length} songs by artist ${artist.Name}, to the queue.`;
+
+        return await AlexaQueue.QueueItems(handlerInput, songs, speach);
     }
 );
 
@@ -107,4 +135,8 @@ const PlayArtistIntent = CreateArtistIntent(
  * Exports
  */
 
-module.exports = { PlayArtistIntent };
+module.exports = {
+    PlayArtistIntent,
+    ShuffleArtistIntent,
+    QueueArtistIntent
+};
