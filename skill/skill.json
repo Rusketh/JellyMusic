@@ -1,0 +1,208 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "jelly music",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play the album {albumname} by {artistname}",
+                        "play the album {albumname}",
+                        "play album {albumname} by {artistname} ",
+                        "play album {albumname} "
+                    ]
+                },
+                {
+                    "name": "AMAZON.PauseIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ResumeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NextIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PreviousIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play songs by {artistname}",
+                        "play artist {artistname}"
+                    ]
+                },
+                {
+                    "name": "PlaySongIntent",
+                    "slots": [
+                        {
+                            "name": "songname",
+                            "type": "AMAZON.MusicRecording"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play song {songname} by {artistname}",
+                        "play {songname} by {artistname}",
+                        "play {songname}",
+                        "play song {songname}"
+                    ]
+                },
+                {
+                    "name": "PlayPlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "play playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "ShuffleAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle the album {albumname}",
+                        "shuffle the album {albumname} by {artistname}",
+                        "shuffle album {albumname} by {artistname}",
+                        "shuffle album {albumname}"
+                    ]
+                },
+                {
+                    "name": "QueueAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "add the album {albumname} by {artistname} to the queue",
+                        "add the album {albumname} to the queue",
+                        "add album {albumname} by {artistname} to the queue",
+                        "add album {albumname} to the queue",
+                        "queue the album {albumname} by {artistname}",
+                        "queue album {albumname} by {artistname}",
+                        "queue album {albumname}",
+                        "queue the album {albumname}"
+                    ]
+                },
+                {
+                    "name": "ShuffleArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle artist {artistname}",
+                        "shuffle songs by {artistname}"
+                    ]
+                },
+                {
+                    "name": "ShufflePlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "QueuePlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "add playlist {playlistname} to the queue",
+                        "queue playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "QueueSongIntent",
+                    "slots": [
+                        {
+                            "name": "songname",
+                            "type": "AMAZON.MusicRecording"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "add {songname} to the queue",
+                        "add song {songname} to the queue",
+                        "add {songname} by {artistname} to the queue",
+                        "add song {songname} by {artistname} to the queue",
+                        "queue {songname}",
+                        "queue song {songname}",
+                        "queue {songname} by {artistname}",
+                        "queue song {songname} by {artistname}"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}

@@ -23,6 +23,28 @@ const ClearQueue = async function(handlerInput)
  * Stop
  */
 
+const Finished = async function(handlerInput)
+{
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const current = await MusicQueue.GetCurrentItem(deviceID);
+
+    if (current)
+    {
+        console.log(`Finished music on Alexa: ${current.item.Name} on ${deviceID}`);
+
+        return responseBuilder.getResponse();
+    }
+
+    console.log(`Finished music on Alexa: ${deviceID}`);
+};
+
+/*********************************************************************************
+ * Stop
+ */
+
 const Stop = async function(handlerInput)
 {
     const { responseBuilder, requestEnvelope } = handlerInput;
@@ -229,10 +251,15 @@ const InjectItems = async function (handlerInput, items, speach)
 
     await MusicQueue.InjectItems(deviceID, items);
 
+    const [current, next] = await MusicQueue.Next(deviceID);
+
+    if (!next) //In theory will never happen.
+        return responseBuilder.getResponse();
+
     if (speach)
         responseBuilder = responseBuilder.speak(speach);
      
-    return responseBuilder.getResponse();
+    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
 };
 
 /*********************************************************************************
@@ -295,6 +322,7 @@ const SetQueueShuffled = async function (handlerInput, items, speach)
 
 module.exports = {
     ClearQueue,
+    Finished,
     Stop,
     Start,
     Resume,

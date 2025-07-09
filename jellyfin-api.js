@@ -1,4 +1,4 @@
-const Config = require("./config.json").jellyfin;
+const Config = require("./data/config.json").jellyfin;
 
 /*********************************************************************************
  * Request Items from API

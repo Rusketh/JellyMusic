@@ -31,8 +31,7 @@ const ErrorHandler = {
         console.error(`Error handled: ${type}`);
         console.error(error);
 
-        const speach = "I'm sorry Dave, but I can't let you do that.";
-        return handlerInput.responseBuilder.speak(speach).getResponse();
+        return handlerInput.responseBuilder.getResponse();
     }
 };
 
@@ -44,6 +43,7 @@ const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         ControlHandlers.LaunchHandler,
         ControlHandlers.PlaybackNearlyFinishedHandler,
+        ControlHandlers.PlaybackFinishedHandler,
         ControlHandlers.PlaybackStoppedHandler,
         ControlHandlers.PlaybackStartedHandler,
         ControlHandlers.PlayButtonHandler,
@@ -70,8 +70,9 @@ const skill = Alexa.SkillBuilders.custom()
         AlbumIntents.QueueAlbumIntent,
         ArtistIntents.QueueArtistIntent,
         PlaylistIntents.QueuePlaylistIntent,
-        SongIntents.QueueSongIntent
+        SongIntents.QueueSongIntent,
 
+        ErrorHandler
     ).addErrorHandlers(
         ErrorHandler
     ).create();

@@ -1,4 +1,4 @@
-const Config = require("../config.json");
+const Config = require("../data/config.json");
 
 const Alexa = require('ask-sdk-core');
 

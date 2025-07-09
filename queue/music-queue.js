@@ -1,4 +1,4 @@
-const Config = require("../config.json").jellyfin;
+const Config = require("../data/config.json").jellyfin;
 
 const JellyFin = require("../jellyfin-api.js");
 
@@ -80,8 +80,8 @@ const InjectItems = async function(deviceID, items, position)
 
     if (!position)
     {
-        const {status, position} = await Queue.GetTrack(deviceID, true, 0);
-        position = status && next ? next.position : 1;
+        var result = await Queue.GetTrack(deviceID, true, 0);
+        position = result.position || 0;
     }
     
     var {status} = await Queue.ShiftQueue(deviceID, position, items.length);

@@ -6,7 +6,7 @@ const { DatabaseSync } = require('node:sqlite');
  * Create SQLIte DB
  */
 
-const Database = new DatabaseSync("./data.db");
+const Database = new DatabaseSync("./data/database.db");
 
 /*********************************************************************************
  * Create SQL Table
@@ -238,14 +238,14 @@ const GetLastPosition = async function(deviceID)
             SELECT position
             FROM queue
             WHERE
-                deviceID = $deviceID AND
+                deviceID = $deviceID
             ORDER BY
                 position DESC
             LIMIT 1;`;
 
         const result = Database.prepare(query).get({$deviceID: deviceID});
 
-        return { status: true, position: result.position || 0 };
+        return { status: true, position: result ? result.position : 0 };
 
     }
     catch (error)

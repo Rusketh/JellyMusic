@@ -1,4 +1,4 @@
-const Config = require("./config.json").server;
+const Config = require("./data/config.json").server;
 
 const { ExpressAdapter } = require('ask-sdk-express-adapter');
 

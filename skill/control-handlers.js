@@ -21,7 +21,16 @@ const PlaybackNearlyFinishedHandler = CreateHandler(
 );
 
 /*********************************************************************************
- * Playback Nearly Finished
+ * Playback Started
+ */
+
+const PlaybackFinishedHandler = CreateHandler(
+    "AudioPlayer.PlaybackFinished",
+    AlexaQueue.Finished
+);
+
+/*********************************************************************************
+ * Playback Stopped
  */
 
 const PlaybackStoppedHandler = CreateHandler(
@@ -30,7 +39,7 @@ const PlaybackStoppedHandler = CreateHandler(
 );
 
 /*********************************************************************************
- * Playback Nearly Finished
+ * Playback Started
  */
 
 const PlaybackStartedHandler = CreateHandler(
@@ -81,6 +90,7 @@ const PreviousButtonHandler = CreateHandler(
 module.exports = {
     LaunchHandler,
     PlaybackNearlyFinishedHandler,
+    PlaybackFinishedHandler,
     PlaybackStoppedHandler,
     PlaybackStartedHandler,
     PlayButtonHandler,
