@@ -61,6 +61,23 @@ The following environment variables are **required**:
 
 **Note:** Your public address for the server needs to run on port `443`, and your reverse proxy should handle the redirect to the specified `PORT`.
 
+### Data Directory
+
+The **configuration file** for Jelly Music, as well as the **SQLite database** used to store the song queue for each connected device, are saved within the `/data` directory.
+
+**Important Considerations:**
+
+-   This directory **must be mapped as a volume** in your Docker container to ensure data persistence. Without it, your configurations and device queues will be lost when the container stops or is removed.
+    
+-   The SQLite database stores per-device queues. While efforts are made to manage its size, please be aware that its growth and cleanup are not guaranteed to be optimized in this alpha stage.
+    
+
+#### Docker Volume Mapping
+
+Here's an example of how to include the volume mount in your `docker run` command:
+
+``docker run -d \ -p 80:8080 \ -e JELLYFIN_HOST="https://your.jellyfin.server" \ -e JELLYFIN_KEY="your_jellyfin_api_key" \ -e SKILL_NAME="Jelly Music" \ -e PORT="8080" \ --name jelly-music-app \ -v "/data:/data" ``
+
 ---
 
 ## Alexa Skill Setup
@@ -81,7 +98,28 @@ Once your Alexa Skill is created, you need to configure it. This might seem daun
 4.  Change `interactionModel.languageModel.invocationName` (line 4 in the JSON file) to the name you used for the **`SKILL_NAME` environment variable**, then save the file.
 5.  Navigate to **"Interaction Model"** and open the **"JSON Editor"**. Drag your saved JSON file into the editor (or copy and paste its contents).
 
-That's it! Click **"Save"** at the top, then hit **"Build Skill"**. Hopefully, after a few minutes, it will build successfully, and you'll be ready to go. Start the container and enjoy listening to your music!
+That's it! Click **"Save"** at the top, then hit **"Build Skill"**. Hopefully, after a few minutes, it will build successfully, and you'll be ready to go and install the skill. Start the container and enjoy listening to your music!
+
+### Enabling Your Skill in the Alexa App
+
+Once your Docker container is running and your Alexa Skill is successfully built in the Alexa Developer Console, you need to enable it within your Alexa app on your mobile device.
+
+1.  Open the **Alexa app** on your smartphone or tablet.
+    
+2.  Navigate to the **"More"** menu (usually represented by three lines or dots).
+    
+3.  Tap on **"Skills & Games"**.
+    
+4.  **Scroll to the bottom** of the "Skills & Games" screen and tap on **"Your Skills"**.
+    
+5.  You should see a small dropdown menu, typically labeled "Enabled". Tap on this dropdown and select **"Dev"** (for Development skills).
+    
+6.  Locate and tap on your **"Jelly Music"** skill from the list.
+    
+7.  Tap the **"Enable"** or **"Enable to Use"** button.
+    
+
+Your Jelly Music skill should now be active and ready for use on your Alexa devices!
 
 ---
 
