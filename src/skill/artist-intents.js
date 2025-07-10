@@ -1,4 +1,4 @@
-const Config = require("../data/config.json");
+const Config = require("/data/config.json");
 
 const Alexa = require('ask-sdk-core');
 
@@ -20,9 +20,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     if (!slots.artistname || !slots.artistname.value)
     {
-        const speach1 = `Which artist would you like to ${action}?`;
-        const speach2 = `I didn't catch the artist name. ${speach1}`;
-        return {status: false, speach1, speach2};
+        const speach = `I didn't catch the artist name.`;
+        return {status: false, speach};
     }
 
     console.log(`Requesting Artist: ${slots.artistname.value}`);
@@ -31,9 +30,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
         
     if (!artists.status || !artists.items[0])
     {
-        const speach1 = `Which artist would you like to ${action}?`;
-        const speach2 = `I didn't find an artist called ${slots.artistname.value}. ${speach1}`;
-        return {status: false, speach1, speach2};
+        const speach = `I didn't find an artist called ${slots.artistname.value}.`;
+        return {status: false, speach};
     }
 
     const artist = artists.items[0];
@@ -42,9 +40,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     if (!songs.status || !songs.items[0])
     {
-        const speach1 = `Which artist would you like to ${action}?`;
-        const speach2 = `I didn't find an music by the artist ${slots.artistname.value}. ${speach1}`;
-        return {status: false, speach1, speach2};
+        const speach = `I didn't find an music by the artist ${slots.artistname.value}.`;
+        return {status: false, speach};
     }
 
     return {status: true, artist, songs: songs.items};
@@ -66,18 +63,18 @@ const CreateArtistIntent = function(intent, action, callback)
 
             if (!result.status)
             {
-                var {speach1, speach2} = result;
+                var {speach, prompt} = result;
                 
-                if (speach1 && speach2)
+                if (speach && prompt)
                 {
-                    console.warn(`Intent("${intent}"): ${speach2}`);
-                    return responseBuilder.speak(speach2).reprompt(speach1).getResponse();
+                    console.warn(`Intent("${intent}"): ${speach}`);
+                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
                 }
 
-                if (speach1)
+                if (speach)
                 {
-                    console.warn(`Intent("${intent}"): ${speach1}`);
-                    return responseBuilder.speak(speach1).getResponse();
+                    console.warn(`Intent("${intent}"): ${speach}`);
+                    return responseBuilder.speak(speach).getResponse();
                 }
 
                 console.warn(`Intent("${intent}"): No response.`);

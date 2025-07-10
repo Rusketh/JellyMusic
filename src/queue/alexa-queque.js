@@ -117,6 +117,8 @@ const Pause = async function(handlerInput)
 {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
+    //Todo store: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds some where.
+    
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const current = await MusicQueue.GetCurrentItem(deviceID);

@@ -6,7 +6,7 @@ const { DatabaseSync } = require('node:sqlite');
  * Create SQLIte DB
  */
 
-const Database = new DatabaseSync("./data/database.db");
+const Database = new DatabaseSync("/data/database.db");
 
 /*********************************************************************************
  * Create SQL Table

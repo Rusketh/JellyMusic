@@ -1,8 +1,6 @@
 
 # Jelly Music
 
-This guide describes the **Jelly Music** Docker container. While currently runnable outside of Docker, these instructions will apply once the Docker container is finalized and tested.
-
 ---
 
 ## What is Jelly Music?
@@ -76,7 +74,7 @@ The **configuration file** for Jelly Music, as well as the **SQLite database** u
 
 Here's an example of how to include the volume mount in your `docker run` command:
 
-``docker run -d \ -p 80:8080 \ -e JELLYFIN_HOST="https://your.jellyfin.server" \ -e JELLYFIN_KEY="your_jellyfin_api_key" \ -e SKILL_NAME="Jelly Music" \ -e PORT="8080" \ --name jelly-music-app \ -v "/data:/data" ``
+``docker run -e JELLYFIN_HOST="https://jellyfin.example.com" -e JELLYFIN_KEY="replace_with_your_api_key" -e SKILL_NAME="jelly music" -e PORT="60648" -p 60648:60648 -v "data:/data" jellymusic:latest``
 
 ---
 

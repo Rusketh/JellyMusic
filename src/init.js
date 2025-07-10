@@ -2,6 +2,14 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 
 /*********************************************************************************
+ * Splash
+ */
+
+console.log("=====================================================================");
+console.log("           Jelly Music");
+console.log("=====================================================================");
+
+/*********************************************************************************
  * Create default config
  */
 
@@ -26,11 +34,11 @@ var Config = {
 
 try
 {
-    if (fs.existsSync("./data/config.json"))
+    if (fs.existsSync("/data/config.json"))
     {
         console.log("Loading Config File");
         
-        Config = JSON.parse(fs.readFileSync("./data/config.json"));
+        Config = JSON.parse(fs.readFileSync("/data/config.json"));
         
         console.log("Config File loaded sucessfully.");
     }
@@ -91,7 +99,7 @@ assert(Config.server.port, `No port defined.\nThis can set in config under "serv
 try
 {
     console.log("Saving Config File");
-    fs.writeFileSync("./data/config.json", JSON.stringify(Config, undefined, 2));
+    fs.writeFileSync("/data/config.json", JSON.stringify(Config, undefined, 2));
 }
 catch(error)
 {

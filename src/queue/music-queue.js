@@ -1,4 +1,4 @@
-const Config = require("../data/config.json").jellyfin;
+const Config = require("/data/config.json").jellyfin;
 
 const JellyFin = require("../jellyfin-api.js");
 

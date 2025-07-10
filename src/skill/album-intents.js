@@ -1,4 +1,4 @@
-const Config = require("../data/config.json");
+const Config = require("/data/config.json");
 
 const Alexa = require('ask-sdk-core');
 
@@ -31,9 +31,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
     
     if (!albums.status || !albums.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an album called ${slots.albumname.value}. ${speach1}`;
-        return {status: false, speach1, speach2};
+        const speach = `I didn't find an album called ${slots.albumname.value}`;
+        return {status: false, speach};
     }
 
     var artist = undefined;
@@ -47,9 +46,8 @@ const ProcessIntent = async function(handlerInput, action = "play")
         
         if (!artists.status || !artists.items[0])
         {
-            const speach1 = `Which album would you like to ${action}?`;
-            const speach2 = `I didn't find an artist called ${slots.artistname.value}. ${speach1}`;
-            return {status: false, speach1, speach2};
+            const speach2 = `I didn't find an artist called ${slots.artistname.value}.`;
+            return {status: false, speach};
         }
 
         artist = artists.items[0];
@@ -77,16 +75,14 @@ const ProcessIntent = async function(handlerInput, action = "play")
                 {
                     const suggestion = `${album.Name} by ${album.AlbumArtist}`;
 
-                    const speach1 = `Which album would you like to ${action}?`;
-                    const speach2 = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}. ${speach1}`;
+                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
                     
-                    return {status: false, speach1, speach2};
+                    return {status: false, speach};
                 }
                 else
                 {
-                    const speach1 = `Which album would you like to ${action}?`;
-                    const speach2 = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}. ${speach1}`;
-                    return {status: false, speach1, speach2};
+                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    return {status: false, speach};
                 }
             }
         }
@@ -96,8 +92,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     if (!songs.status || !songs.items[0])
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't find an music in the album ${slots.albumname.value}. ${speach1}`;
+        const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
         return {status: false, speach1, speach2};
     }
 
@@ -120,18 +115,18 @@ const CreateAlbumIntent = function(intent, action, callback)
 
             if (!result.status)
             {
-                var {speach1, speach2} = result;
+                var {speach, prompt} = result;
                 
-                if (speach1 && speach2)
+                if (speach && prompt)
                 {
-                    console.warn(`Intent("${intent}"): ${speach2}`);
-                    return responseBuilder.speak(speach2).reprompt(speach1).getResponse();
+                    console.warn(`Intent("${intent}"): ${speach}`);
+                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
                 }
 
-                if (speach1)
+                if (speach)
                 {
-                    console.warn(`Intent("${intent}"): ${speach1}`);
-                    return responseBuilder.speak(speach1).getResponse();
+                    console.warn(`Intent("${intent}"): ${speach}`);
+                    return responseBuilder.speak(speach).getResponse();
                 }
 
                 console.warn(`Intent("${intent}"): No response.`);

@@ -1,16 +1,14 @@
-FROM node:22.17.0-alpine
+FROM node:22.17.0-alpine AS dependancies
+FROM dependancies AS developer
+FROM dependancies AS runner
 
-COPY package.json ./
+WORKDIR /app
 
-RUN npm install --production
+COPY src/package.json package.json
+COPY src/package-lock.json package-lock.json 
 
-COPY . .
+RUN npm install
 
-EXPOSE 4141
+COPY src/ .
 
-ENV JELLYFIN_HOST="your_jellyfin_host_here"
-ENV JELLYFIN_KEY="your_jellyfin_api_key_here"
-ENV SKILL_NAME="Jelly Music"
-ENV PORT="4141"
-
-CMD ["npm", "start"]
+CMD ["node", "init"]
