@@ -74,9 +74,7 @@ The **configuration file** for Jelly Music, as well as the **SQLite database** u
 
 Here's an example of how to include the volume mount in your `docker run` command:
 
-``docker run -e JELLYFIN_HOST="https://jellyfin.example.com" -e JELLYFIN_KEY="replace_with_your_api_key" -e SKILL_NAME="jelly music" -e PORT="60648" -p 60648:60648 -v "data:/data" ghcr.io/rusketh/jellymusic:build.sig``
-
-Replace build.sig with the latest build obtained here [https://github.com/rusketh/JellyMusic/pkgs/container/jellymusic](https://github.com/rusketh/JellyMusic/pkgs/container/jellymusic).
+``docker run -e JELLYFIN_HOST="https://jellyfin.example.com" -e JELLYFIN_KEY="replace_with_your_api_key" -e SKILL_NAME="jelly music" -e PORT="60648" -p 60648:60648 -v "data:/data" ghcr.io/rusketh/jellymusic/jellymusic:main``
 
 ---
 
