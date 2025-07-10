@@ -22,12 +22,6 @@ Please note that **Jelly Music** is a side project I'm developing in my spare ti
 
 ---
 
-## Legal Disclaimer
-
-By using **Jelly Music**, you are confirming that you have the **necessary licenses or ownership rights** for the music on your Jellyfin server. This skill was **not created or intended for illegal downloading or piracy**.
-
----
-
 ## Requirements
 
 To run a Jelly Music instance, you will need:
