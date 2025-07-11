@@ -36,7 +36,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
     const artist = artists.items[0];
 
-    const songs = await JellyFin.Music({artistIds: artist.Id});
+    const songs = await JellyFin.Music({artistIds: artist.Id, limit: 100});
 
     if (!songs.status || !songs.items[0])
     {

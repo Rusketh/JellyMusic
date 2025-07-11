@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "jelly music",
+            "invocationName": "media server",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -199,6 +199,54 @@
                         "queue song {songname}",
                         "queue {songname} by {artistname}",
                         "queue song {songname} by {artistname}"
+                    ]
+                },
+                {
+                    "name": "ClearQueueIntent",
+                    "slots": [],
+                    "samples": [
+                        "clear queue",
+                        "empty the queue",
+                        "clear the queue"
+                    ]
+                },
+                {
+                    "name": "PlayGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "play {genre} music",
+                        "play genre {genre}"
+                    ]
+                },
+                {
+                    "name": "QueueGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "queue {genre} music",
+                        "queue genre {genre}"
+                    ]
+                },
+                {
+                    "name": "ShuffleGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle {genre} music",
+                        "shuffle genre {genre}"
                     ]
                 }
             ],

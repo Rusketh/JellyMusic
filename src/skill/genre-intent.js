@@ -9,7 +9,7 @@ const AlexaQueue = require("../queue/alexa-queque.js");
 const { CreateIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
- * Process Intent: Get Arist Intent
+ * Process Intent: Get Genre Intent
  */
 
 const ProcessIntent = async function(handlerInput, action = "play") 
@@ -18,40 +18,38 @@ const ProcessIntent = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (!slots.playlistname || !slots.playlistname.value)
+    if (!slots.genre || !slots.genre.value)
     {
-        const speach = `I didn't catch the playlist name.`;
+        const speach = `I didn't catch the genre of music.`;
         return {status: false, speach};
     }
 
-    console.log(`Requesting Playlist: ${slots.playlistname.value}`);
+    console.log(`Requesting Genre: ${slots.genre.value}`);
 
-    const playlists = await JellyFin.Playlists.Search(slots.playlistname.value);
+    const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
         
-    if (!playlists.status || !playlists.items[0])
+    if (!genres.status || !genres.items[0])
     {
-        const speach = `I didn't find a playlist called ${slots.playlistname.value}.`;
+        const speach = `I didn't find a genre called ${slots.genre.value}.`;
         return {status: false, speach};
     }
 
-    const playlist = playlists.items[0];
-
-    const songs = await JellyFin.Music.ByPlayList(playlist.Name, {limit: 100});
-
+    const songs = await JellyFin.Music({genres: genres.items.map(item => item.Name).join("|"), limit: 100});
+    
     if (!songs.status || !songs.items[0])
     {
-        const speach = `The playlist ${slots.artistname.value} is empty.`;
+        const speach = `No songs of ${slots.genre.value} where found.`;
         return {status: false, speach};
     }
 
-    return {status: true, playlist, songs: songs.items};
+    return {status: true, genres: genres.items, songs: songs.items};
 };
 
 /*********************************************************************************
- * Create Playlist Intent Handler
+ * Create Genre Intent Handler
  */
 
-const CreateArtistIntent = function(intent, action, callback)
+const CreateGenreIntent = function(intent, action, callback)
 {
     return CreateIntent(
         intent,
@@ -90,11 +88,15 @@ const CreateArtistIntent = function(intent, action, callback)
  * Play Playlist Intent
  */
 
-const PlayPlaylistIntent = CreateArtistIntent(
-    "PlayPlaylistIntent", "play",
-    async function (handlerInput, {playlist, songs})
+const PlayGenreIntent = CreateGenreIntent(
+    "PlayGenreIntent", "play",
+    async function (handlerInput, {genres, songs})
     {
-        var speach = `Playing songs from playlist ${playlist.Name}, on ${Config.skill.name}`;
+
+        var speach = `Playing ${genres[0].Name}, on ${Config.skill.name}`;
+
+        if (genres.length > 1)
+            var speach = `Playing ${genres[0].Name} and simular genre's, on ${Config.skill.name}`;
 
         return await AlexaQueue.InjectItems(handlerInput, songs, speach);
     }
@@ -104,11 +106,14 @@ const PlayPlaylistIntent = CreateArtistIntent(
  * Play Playlist Intent
  */
 
-const ShufflePlaylistIntent = CreateArtistIntent(
-    "ShufflePlaylistIntent", "shuffling",
-    async function (handlerInput, {playlist, songs})
+const ShuffleGenreIntent = CreateGenreIntent(
+    "ShuffleGenreIntent", "shuffling",
+    async function (handlerInput, {genres, songs})
     {
-        var speach = `Shuffling songs from playlist ${playlist.Name}, on ${Config.skill.name}`;
+        var speach = `Shuffling ${genres[0].Name}, on ${Config.skill.name}`;
+
+        if (genres.length > 1)
+            var speach = `Shuffling ${genres[0].Name} and simular genre's, on ${Config.skill.name}`;
 
         return await AlexaQueue.SetQueueShuffled(handlerInput, songs, speach);
     }
@@ -118,12 +123,15 @@ const ShufflePlaylistIntent = CreateArtistIntent(
  * Queue Playlist Intent
  */
 
-const QueuePlaylistIntent = CreateArtistIntent(
-    "QueuePlaylistIntent", "queue",
-    async function (handlerInput, {playlist, songs})
+const QueueGenreIntent = CreateGenreIntent(
+    "QueueGenreIntent", "queue",
+    async function (handlerInput, {genres, songs})
     {
-        var speach = `Added ${songs.length} songs from playlist ${playlist.Name}, to the queue.`;
+        var speach = `Added ${songs.length}, ${genres[0].Name} songs, to the queue.`;
 
+        if (genres.length > 1)
+            var speach = `Added ${songs.length}, ${genres[0].Name} and simular songs, to the queue.`;
+        
         return await AlexaQueue.QueueItems(handlerInput, songs, speach);
     }
 );
@@ -134,7 +142,7 @@ const QueuePlaylistIntent = CreateArtistIntent(
  */
 
 module.exports = {
-    PlayPlaylistIntent,
-    ShufflePlaylistIntent,
-    QueuePlaylistIntent
+    PlayGenreIntent,
+    ShuffleGenreIntent,
+    QueueGenreIntent
 };

@@ -1,6 +1,57 @@
+const Config = require("/data/config.json").jellyfin;
+
 const Alexa = require('ask-sdk-core');
 
+const Queue = require("./db-queue.js");
+
 const MusicQueue = require("./music-queue.js");
+
+/*********************************************************************************
+ * Meta Data for Screen enabled Devices
+ * E.G: The app
+ */
+
+const GetImage = function(id, tag)
+{
+    if (!id) return null;
+
+    const url = new URL(`Items/${id}/Images/Primary`, Config.host);
+    if (tag) url.searchParams.append("tag", tag);
+
+    return { sources: [ { url: url.toString() } ] };
+};
+
+const GetMetaData = function(item)
+{
+    if (!item) return null;
+
+    const mt = {
+        title: item.Name,
+        subtitle: item.AlbumArtist
+    };
+    
+    if (item.AlbumId && item.AlbumPrimaryImageTag)
+        mt.art = GetImage(item.AlbumId, item.AlbumPrimaryImageTag);
+    
+    return mt;
+};
+
+/*********************************************************************************
+ * ClearQueue
+ */
+
+const Launch = async function(handlerInput)
+{
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    await MusicQueue.Clear(deviceID);
+    
+    console.log(`Launched: ${deviceID}`);
+
+    return responseBuilder.addAudioPlayerClearQueueDirective("CLEAR_ALL").getResponse();
+};
 
 /*********************************************************************************
  * ClearQueue
@@ -64,7 +115,7 @@ const Stop = async function(handlerInput)
 };
 
 /*********************************************************************************
- * Stop
+ * Start
  */
 
 const Start = async function(handlerInput)
@@ -77,6 +128,8 @@ const Start = async function(handlerInput)
 
     if (current)
     {
+        await Queue.SetPlayback(deviceID, current.queueID, 0);
+
         console.log(`Started music on Alexa: ${current.item.Name} on ${deviceID}`);
 
         return responseBuilder.getResponse();
@@ -100,9 +153,16 @@ const Resume = async function(handlerInput)
 
     if (current)
     {
+        var time = 0;
+
+        const {status, queueID, miliseconds} = await Queue.GetPlayback(deviceID);
+
+        if (status && queueID == current.queueID)
+            time = miliseconds;
+        
         console.log(`Resuming music on Alexa: ${current.item.Name} on ${deviceID}`);
 
-        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', current.url, current.queueID, 0).getResponse();
+        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', current.url, current.queueID, time, null, GetMetaData(current.item)).getResponse();
     }
 
     const speach = "There is currently no track playing.";
@@ -117,14 +177,17 @@ const Pause = async function(handlerInput)
 {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
-    //Todo store: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds some where.
-    
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const current = await MusicQueue.GetCurrentItem(deviceID);
 
     if (current)
+    {
+        if (requestEnvelope.context.AudioPlayer)
+            await Queue.SetPlayback(deviceID, current.queueID, requestEnvelope.context.AudioPlayer.offsetInMilliseconds || 0);
+        
         console.log(`Pasuing music on Alexa: ${current.item.Name} on ${deviceID}`);
+    }
 
     return responseBuilder.addAudioPlayerStopDirective().getResponse();
 };
@@ -147,14 +210,14 @@ const QueueNext = async function (handlerInput)
     {
         console.log(`Adding Item to Alexa Queue: ${next.item.Name} on ${deviceID}`);
 
-        return responseBuilder.addAudioPlayerPlayDirective('ENQUEUE', next.url, next.queueID, 0, current.queueID).getResponse();
+        return responseBuilder.addAudioPlayerPlayDirective('ENQUEUE', next.url, next.queueID, 0, current.queueID, GetMetaData(next.item)).getResponse();
     }
 
     if (next)
     {
         console.log(`Playin Item on Alexa: ${next.item.Name} on ${deviceID}`);
 
-        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0, null, GetMetaData(next.item)).getResponse();
     }
 
     return responseBuilder.getResponse();
@@ -176,7 +239,7 @@ const PlayNext = async function (handlerInput)
     {
         console.log(`Playin Item on Alexa: ${next.item.Name} on ${deviceID}`);
 
-        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0, null, GetMetaData(next.item)).getResponse();
     }
 
     if (Current)
@@ -206,7 +269,7 @@ const PlayPrevious = async function (handlerInput)
     {
         console.log(`Playin Item on Alexa: ${previous.item.Name} on ${deviceID}`);
 
-        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', previous.url, previous.queueID, 0).getResponse();
+        return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', previous.url, previous.queueID, 0, null, GetMetaData(previous.item)).getResponse();
     }
 
     if (Current)
@@ -261,7 +324,7 @@ const InjectItems = async function (handlerInput, items, speach)
     if (speach)
         responseBuilder = responseBuilder.speak(speach);
      
-    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0, null, GetMetaData(next.item)).getResponse();
 };
 
 /*********************************************************************************
@@ -288,7 +351,7 @@ const SetQueue = async function (handlerInput, items, speach)
     if (speach)
         responseBuilder = responseBuilder.speak(speach);
      
-    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0, null, GetMetaData(next.item)).getResponse();
 };
 
 /*********************************************************************************
@@ -315,7 +378,7 @@ const SetQueueShuffled = async function (handlerInput, items, speach)
     if (speach)
         responseBuilder = responseBuilder.speak(speach);
      
-    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0).getResponse();
+    return responseBuilder.addAudioPlayerPlayDirective('REPLACE_ALL', next.url, next.queueID, 0, null, GetMetaData(next.item)).getResponse();
 };
 
 /*********************************************************************************
@@ -323,6 +386,7 @@ const SetQueueShuffled = async function (handlerInput, items, speach)
  */
 
 module.exports = {
+    Launch,
     ClearQueue,
     Finished,
     Stop,

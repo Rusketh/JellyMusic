@@ -88,7 +88,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
         }
     }
 
-    const songs = await JellyFin.Music({albumIds: album.Id});
+    const songs = await JellyFin.Music({albumIds: album.Id, limit: 100});
 
     if (!songs.status || !songs.items[0])
     {

@@ -8,7 +8,7 @@ const { CreateHandler } = require("./alexa-helper.js");
 
 const LaunchHandler = CreateHandler(
     "LaunchRequest",
-    AlexaQueue.ClearQueue
+    AlexaQueue.Launch
 );
 
 /*********************************************************************************

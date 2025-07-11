@@ -66,6 +66,17 @@ const PreviousIntent = CreateIntent(
 );
 
 /*********************************************************************************
+ * Previous Intent
+ */
+
+const ClearQueueIntent = CreateIntent(
+    "ClearQueueIntent",
+    AlexaQueue.ClearQueue
+);
+
+
+
+/*********************************************************************************
  * Exports
  */
 
@@ -75,5 +86,6 @@ module.exports = {
     PauseIntent,
     PreviousIntent,
     ResumeIntent,
-    NextIntent
+    NextIntent,
+    ClearQueueIntent
 };

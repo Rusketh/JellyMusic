@@ -30,7 +30,25 @@ try
 }
 catch (error)
 {
-    console.error("Failed to create queue table:");
+    console.error("Failed to create Queue table:");
+    console.error(error);
+}
+
+try
+{
+    const query = `CREATE TABLE IF NOT EXISTS playback(
+        deviceID VARCHAR(512) PRIMARY KEY,
+        queueID VARCHAR(64),
+        miliseconds INT DEFAULT 0
+    )`;
+
+    Database.exec(query);
+
+    console.log("Databse Playback table ensured.");
+}
+catch (error)
+{
+    console.error("Failed to create Playback table:");
     console.error(error);
 }
 
@@ -358,6 +376,69 @@ const ShiftQueue = async function(deviceID, position = 0, offset = 1)
 };
 
 /*********************************************************************************
+ * 
+ */
+
+const SetPlayback = async function(deviceID, queueID, miliseconds)
+{
+    try
+    {
+        const query = `
+            INSERT INTO playback (deviceID, queueID, miliseconds)
+            VALUES (?, ?, ?)
+            ON CONFLICT(deviceID) DO UPDATE SET
+                deviceID = excluded.deviceID,
+                queueID = excluded.queueID,
+                miliseconds = excluded.miliseconds;
+            `;
+
+        await Database.prepare(query).run(deviceID, queueID, miliseconds);
+
+        return {status: true};
+    }
+    catch(error)
+    {
+        console.error(`Error setting blackback for device ${deviceID}.`);
+        console.error(error);
+
+        return {status: false};
+    }
+};
+
+/*********************************************************************************
+ * Get Track From Queue
+ */
+
+const GetPlayback = async function(deviceID) {
+    try
+    {
+        const query = `
+            SELECT queueID, miliseconds
+            FROM playback
+            WHERE
+                deviceID = ?;
+            `;
+
+        const result = Database.prepare(query).get(deviceID);
+
+        if (!result)
+            return { status: true, miliseconds: 0 };
+
+        const { queueID, miliseconds } = result;
+
+        return { status: true, queueID, miliseconds };
+
+    }
+    catch (error)
+    {
+        console.error(`Error fetching track for device ${deviceID}, queued: ${isQueued}, offset: ${offset}.`);
+        console.error(error);
+
+        return { status: false };
+    }
+};
+    
+/*********************************************************************************
  * Exports
  */
 
@@ -370,5 +451,7 @@ module.exports = {
     GetLastPosition,
     ShuffleItems,
     ShuffleQueue,
-    ShiftQueue
+    ShiftQueue,
+    SetPlayback,
+    GetPlayback
 };

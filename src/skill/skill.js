@@ -16,6 +16,8 @@ const SongIntents = require("./song-intents.js");
 
 const PlaylistIntents = require("./playlist-intents.js");
 
+const GenreIntents = require("./genre-intent.js");
+
 /*********************************************************************************
  * Error Handler
  */
@@ -57,20 +59,24 @@ const skill = Alexa.SkillBuilders.custom()
         ControlIntents.ResumeIntent,
         ControlIntents.NextIntent,
         ControlIntents.PreviousIntent,
+        ControlIntents.ClearQueueIntent,
 
         AlbumIntents.PlayAlbumIntent,
         ArtistIntents.PlayArtistIntent,
         PlaylistIntents.PlayPlaylistIntent,
         SongIntents.PlaySongIntent,
+        GenreIntents.PlayGenreIntent,
 
         AlbumIntents.ShuffleAlbumIntent,
         ArtistIntents.ShuffleArtistIntent,
         PlaylistIntents.ShufflePlaylistIntent,
+        GenreIntents.ShuffleGenreIntent,
 
         AlbumIntents.QueueAlbumIntent,
         ArtistIntents.QueueArtistIntent,
         PlaylistIntents.QueuePlaylistIntent,
         SongIntents.QueueSongIntent,
+        GenreIntents.QueueGenreIntent,
 
         ErrorHandler
     ).addErrorHandlers(
