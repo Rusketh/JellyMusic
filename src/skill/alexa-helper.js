@@ -89,10 +89,50 @@ const CreateIntent = function(intent, callback)
 };
 
 /*********************************************************************************
+ * Create Queue Intent Handler
+ */
+
+const CreateQueueIntent = function(intent, action, processor, responder, buildQueue, submit)
+{
+    return CreateIntent(
+        intent,
+        async function (handlerInput)
+        {
+            const data = { };
+
+            const { responseBuilder } = handlerInput;
+
+            const [result, then] = await processor(handlerInput, action, buildQueue, submit);
+
+            if (!result.status)
+            {
+                var {speach, prompt} = result;
+                
+                if (speach && prompt)
+                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
+
+                if (speach)
+                    return responseBuilder.speak(speach).getResponse();
+                
+                return responseBuilder.getResponse();
+            }
+
+            //Process first stage of queue and get alexas feed back.
+            const response = await responder(handlerInput, result, data);
+
+            if (then) then(data); //Start generating the rest of queue
+
+            return response;
+        }
+    );
+};
+
+/*********************************************************************************
  * Exports
  */
 
 module.exports = {
     CreateHandler,
-    CreateIntent
+    CreateIntent,
+    CreateQueueIntent
 };

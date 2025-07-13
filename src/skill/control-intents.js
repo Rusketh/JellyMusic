@@ -2,7 +2,7 @@ const Alexa = require('ask-sdk-core');
 
 const { CreateIntent } = require("./alexa-helper.js");
 
-const AlexaQueue = require("../queue/alexa-queque.js");
+const Devices = require("../playlist/devices.js");
 
 /*********************************************************************************
  * Cancel Intent
@@ -10,12 +10,8 @@ const AlexaQueue = require("../queue/alexa-queque.js");
 
 const CancelIntent = CreateIntent(
     "AMAZON.CancelIntent",
-    async function(handlerInput)
+    function({ responseBuilder })
     {
-        const { responseBuilder } = handlerInput;
-
-        //In theory amazon should handel this.
-
         return responseBuilder.getResponse();
     }
 );
@@ -26,7 +22,7 @@ const CancelIntent = CreateIntent(
 
 const StopIntent = CreateIntent(
     "AMAZON.StopIntent",
-    AlexaQueue.ClearQueue
+    Devices.doStop
 );
 
 /*********************************************************************************
@@ -35,7 +31,7 @@ const StopIntent = CreateIntent(
 
 const ResumeIntent = CreateIntent(
     "AMAZON.ResumeIntent",
-    AlexaQueue.Resume
+    Devices.doResume
 );
 
 /*********************************************************************************
@@ -44,7 +40,7 @@ const ResumeIntent = CreateIntent(
 
 const PauseIntent = CreateIntent(
     "AMAZON.PauseIntent",
-    AlexaQueue.Pause
+    Devices.doPause
 );
 
 /*********************************************************************************
@@ -53,7 +49,7 @@ const PauseIntent = CreateIntent(
 
 const NextIntent = CreateIntent(
     "AMAZON.NextIntent",
-    AlexaQueue.PlayNext
+    Devices.doPlayNext
 );
 
 /*********************************************************************************
@@ -62,7 +58,7 @@ const NextIntent = CreateIntent(
 
 const PreviousIntent = CreateIntent(
     "AMAZON.PreviousIntent",
-    AlexaQueue.PlayPrevious
+    Devices.doPlayPrevious
 );
 
 /*********************************************************************************
@@ -71,7 +67,7 @@ const PreviousIntent = CreateIntent(
 
 const ClearQueueIntent = CreateIntent(
     "ClearQueueIntent",
-    AlexaQueue.ClearQueue
+    Devices.doClear
 );
 
 

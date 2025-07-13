@@ -26,14 +26,17 @@ const ErrorHandler = {
     canHandle: () => true,
     handle: function (handlerInput, error)
     {
-        const {responseBuilder} = handlerInput;
+        const {responseBuilder, requestEnvelope} = handlerInput;
+
+        if (!error && requestEnvelope.request)
+            error = requestEnvelope.request.error;
 
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
 
         console.error(`Error handled: ${type}`);
         console.error(error);
 
-        return handlerInput.responseBuilder.getResponse();
+        return responseBuilder.getResponse();
     }
 };
 
@@ -44,6 +47,7 @@ const ErrorHandler = {
 const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         ControlHandlers.LaunchHandler,
+        ControlHandlers.PlaybackFailedHandler,
         ControlHandlers.PlaybackNearlyFinishedHandler,
         ControlHandlers.PlaybackFinishedHandler,
         ControlHandlers.PlaybackStoppedHandler,

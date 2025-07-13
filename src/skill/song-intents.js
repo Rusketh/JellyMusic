@@ -4,9 +4,9 @@ const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const AlexaQueue = require("../queue/alexa-queque.js");
+const Devices = require("../playlist/devices.js");
 
-const { CreateIntent } = require("./alexa-helper.js");
+const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
  * Process Intent: Get Song Intent
@@ -87,76 +87,60 @@ const ProcessIntent = async function(handlerInput, action = "play")
         }
     }
 
-    return {status: true, artist, song};
-};
-/*********************************************************************************
- * Create Album Intent Handler
- */
-
-const CreateSongIntent = function(intent, action, callback)
-{
-    return CreateIntent(
-        intent,
-        async function (handlerInput)
-        {
-            const { responseBuilder } = handlerInput;
-
-            const result = await ProcessIntent(handlerInput, action);
-
-            if (!result.status)
-            {
-                var {speach, prompt} = result;
-                
-                if (speach && prompt)
-                {
-                    console.warn(`Intent("${intent}"): ${speach}`);
-                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
-                }
-
-                if (speach)
-                {
-                    console.warn(`Intent("${intent}"): ${speach}`);
-                    return responseBuilder.speak(speach).getResponse();
-                }
-
-                console.warn(`Intent("${intent}"): No response.`);
-                return responseBuilder.getResponse();
-            }
-
-            return await callback(handlerInput, result);
-        }
-    );
+    return [{status: true, artist, items: [song]}];
 };
 
 /*********************************************************************************
- * Play Artist Intent
+ * Play Song Intent
  */
 
-const PlaySongIntent = CreateSongIntent(
+const PlaySongIntent = CreateQueueIntent(
     "PlaySongIntent", "play",
-    async function (handlerInput, {song})
+    function (handlerInput, {items})
     {
-        var speach = `Playing ${song.Name}, on ${Config.name}`;
+        const { responseBuilder, requestEnvelope } = handlerInput;
         
-        if (song.AlbumArtist) speach = `Playing ${song.Name} by ${song.AlbumArtist}, on ${Config.skill.name}`;
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
 
-        return await AlexaQueue.InjectItems(handlerInput, [song], speach);
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.clear();
+
+        playlist.prefixItems(items);
+
+        const directive = playlist.getPlayDirective();
+
+        var speach = `Playing ${items[0].Name}, on ${Config.name}`;
+        
+        if (song.AlbumArtist) speach = `Playing ${items[0].Name} by ${items[0].AlbumArtist}, on ${Config.skill.name}`;
+
+        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     }
 );
 
 /*********************************************************************************
- * Queue Artist Intent
+ * Queue Song Intent
  */
 
-const QueueSongIntent = CreateSongIntent(
+const QueueSongIntent = CreateQueueIntent(
     "QueueSongIntent", "queue",
-    async function (handlerInput, {song})
+    function (handlerInput, {items})
     {
-        var speach = `Added ${song.Name}, to the queue.`;
+        const { responseBuilder, requestEnvelope } = handlerInput;
         
-        if (song.AlbumArtist) speach = `Added ${song.Name} by ${song.AlbumArtist}, to the queue.`;
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
 
-        return await AlexaQueue.QueueItems(handlerInput, [song], speach);
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.appendItems(items);
+
+        const directive = playlist.getPlayDirective();
+
+        var speach = `Added ${item[0].Name}, to the queue.`;
+        
+        if (item[0].AlbumArtist) speach = `Added ${item[0].Name} by ${item[0].AlbumArtist}, to the queue.`;
+
+        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     }
 );
 
