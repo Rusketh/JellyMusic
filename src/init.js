@@ -65,6 +65,8 @@ Config.jellyfin.key = process.env.JELLYFIN_KEY || Config.jellyfin.key;
 
 assert(Config.jellyfin.key, `No Jellyfin api key defined.\nThis can set in config under "jellyfin.key" or as enviroment value JELLYFIN_KEY.`);
 
+Config.jellyfin.limit = process.env.JELLYFIN_LIMIT || Config.jellyfin.limit || 10;
+
 /*********************************************************************************
  * Validate Skill Config
  */
