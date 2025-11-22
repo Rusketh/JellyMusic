@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - dev-v2
 
 jobs:
   build-and-push:
