@@ -1,7 +1,9 @@
 node_modules
+data
+src/node_modules
+scr/data
 build
 npm-debug.log
 .env
 .DS_Store
-data
 .devcontainer/.env

@@ -2,14 +2,14 @@ const {limit} = CONFIG.jellyfin;
 
 const Alexa = require('ask-sdk-core');
 
-const JellyFin = require("../jellyfin-api.js");
+const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
- * Process Intent: Get Arist Intent
+ * Process Intent: Get Genre Intent
  */
 
 const Processer = async function(handlerInput, action = "play", buildQueue, submit) 
@@ -18,29 +18,28 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (!slots.artistname || !slots.artistname.value)
+    if (!slots.genre || !slots.genre.value)
     {
-        const speach = `I didn't catch the artist name.`;
+        const speach = `I didn't catch the genre of music.`;
         return [{status: false, speach}];
     }
 
-    console.log(`Requesting Artist: ${slots.artistname.value}`);
+    console.log(`Requesting Genre: ${slots.genre.value}`);
 
-    const artists = await JellyFin.Artists.Search(slots.artistname.value);
+    const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
         
-    if (!artists.status || !artists.items[0])
+    if (!genres.status || !genres.items[0])
     {
-        const speach = `I didn't find an artist called ${slots.artistname.value}.`;
+        const speach = `I didn't find a genre called ${slots.genre.value}.`;
         return [{status: false, speach}];
     }
+    const genreIds = genres.items.map(item => item.Id).join("|");
 
-    const artist = artists.items[0];
-
-    const songs = await JellyFin.Music({limit, artistIds: artist.Id});
-
+    const songs = await JellyFin.Music({genreIds, limit});
+    
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music by the artist ${slots.artistname.value}.`;
+        const speach = `No songs of ${slots.genre.value} where found.`;
         return [{status: false, speach}];
     }
 
@@ -48,22 +47,22 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     {
         if (buildQueue)
             for (let i = songs.index + limit; i < songs.count; i += limit)
-                buildQueue(handlerInput, await JellyFin.Music({artistIds: artist.Id, limit, startIndex: i}), data);
+                buildQueue(handlerInput, await JellyFin.Music({genreIds, limit, startIndex: i}), data);
 
         if (submit)
             return await submit(handlerInput, data);
     };
 
-    return [{status: true, artist, items: songs.items}, then];
+    return [{status: true, genres: genres.items, items: songs.items}, then];
 };
 
 /*********************************************************************************
- * Play Artist Intent
+ * Play Playlist Intent
  */
 
-const PlayArtistIntent = CreateQueueIntent(
-    "PlayArtistIntent", "play", Processer,
-    function (handlerInput, {artist, items}, data)
+const PlayGenreIntent = CreateQueueIntent(
+    "PlayGenreIntent", "play", Processer,
+    function (handlerInput, {genres, items}, data)
     {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
@@ -77,7 +76,10 @@ const PlayArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        var speach = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        
+        if (genres.length > 1)
+            var speach = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -96,12 +98,12 @@ const PlayArtistIntent = CreateQueueIntent(
 );
 
 /*********************************************************************************
- * Shuffle Artist Intent
+ * Play Playlist Intent
  */
 
-const ShuffleArtistIntent = CreateQueueIntent(
-    "ShuffleArtistIntent", "shuffling", Processer,
-    function (handlerInput, {artist, items}, data)
+const ShuffleGenreIntent = CreateQueueIntent(
+    "ShuffleGenreIntent", "shuffling", Processer,
+    function (handlerInput, {genres, songs}, data)
     {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
@@ -117,8 +119,11 @@ const ShuffleArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
-        
+        var speach = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
+
+        if (genres.length > 1)
+            var speach = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
@@ -144,12 +149,12 @@ const ShuffleArtistIntent = CreateQueueIntent(
 );
 
 /*********************************************************************************
- * Queue Artist Intent
+ * Queue Playlist Intent
  */
 
-const QueueArtistIntent = CreateQueueIntent(
-    "QueueArtistIntent", "queue", Processer,
-    function (handlerInput, {artist, items, count}, data)
+const QueueGenreIntent = CreateQueueIntent(
+    "QueueGenreIntent", "queue", Processer,
+    function (handlerInput, {genres, items, count}, data)
     {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
@@ -161,8 +166,11 @@ const QueueArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${count} songs by artist ${artist.Name}, to the queue.`;
+        var speach = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
 
+        if (genres.length > 1)
+            var speach = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
+    
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
@@ -177,12 +185,13 @@ const QueueArtistIntent = CreateQueueIntent(
     }
 );
 
+
 /*********************************************************************************
  * Exports
  */
 
 module.exports = {
-    PlayArtistIntent,
-    ShuffleArtistIntent,
-    QueueArtistIntent
+    PlayGenreIntent,
+    ShuffleGenreIntent,
+    QueueGenreIntent
 };

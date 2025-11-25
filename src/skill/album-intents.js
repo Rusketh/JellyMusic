@@ -1,18 +1,18 @@
-const Config = require("/data/config.json");
+const {limit} = CONFIG.jellyfin;
 
 const Alexa = require('ask-sdk-core');
 
 const JellyFin = require("../jellyfin-api");
 
-const AlexaQueue = require("../queue/alexa-queque.js");
+const Devices = require("../playlist/devices.js");
 
-const { CreateIntent } = require("./alexa-helper.js");
+const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
  * Process Intent: Get Album by name & Artist
  */
 
-const ProcessIntent = async function(handlerInput, action = "play") 
+const Processer = async function(handlerInput, action = "play", buildQueue, submit) 
 {
     const { requestEnvelope } = handlerInput;
     const intent = requestEnvelope.request.intent;
@@ -22,7 +22,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
     {
         const speach1 = `Which album would you like to ${action}?`;
         const speach2 = `I didn't catch the album name. ${speach1}`;
-        return {status: false, speach1, speach2};
+        return [{status: false, speach1, speach2}];
     }
 
     console.log(`Requesting Album: ${slots.albumname.value}`);
@@ -32,7 +32,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
     if (!albums.status || !albums.items[0])
     {
         const speach = `I didn't find an album called ${slots.albumname.value}`;
-        return {status: false, speach};
+        return [{status: false, speach}];
     }
 
     var artist = undefined;
@@ -47,7 +47,7 @@ const ProcessIntent = async function(handlerInput, action = "play")
         if (!artists.status || !artists.items[0])
         {
             const speach2 = `I didn't find an artist called ${slots.artistname.value}.`;
-            return {status: false, speach};
+            return [{status: false, speach}];
         }
 
         artist = artists.items[0];
@@ -61,7 +61,6 @@ const ProcessIntent = async function(handlerInput, action = "play")
             {
                 if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase())
                 {
-                    console.log("Found ", item.Name);
                     album = item;
                     break;
                 }
@@ -77,80 +76,75 @@ const ProcessIntent = async function(handlerInput, action = "play")
 
                     const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
                     
-                    return {status: false, speach};
+                    return [{status: false, speach}];
                 }
                 else
                 {
                     const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
-                    return {status: false, speach};
+                    return [{status: false, speach}];
                 }
             }
         }
     }
 
-    const songs = await JellyFin.Music({albumIds: album.Id});
+    const songs = await JellyFin.Music({limit, albumIds: album.Id});
 
     if (!songs.status || !songs.items[0])
     {
         const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
-        return {status: false, speach1, speach2};
+        return [{status: false, speach1, speach2}];
     }
 
-    return {status: true, album, songs: songs.items};
-};
+    const then = async function(data)
+    {
+        if (buildQueue)
+            for (let i = songs.index + limit; i < songs.count; i += limit)
+                buildQueue(handlerInput, await JellyFin.Music({albumIds: album.Id, limit, startIndex: i}), data);
 
-/*********************************************************************************
- * Create Album Intent Handler
- */
+        if (submit)
+            return await submit(handlerInput, data);
+    };
 
-const CreateAlbumIntent = function(intent, action, callback)
-{
-    return CreateIntent(
-        intent,
-        async function (handlerInput)
-        {
-            const { responseBuilder } = handlerInput;
-
-            const result = await ProcessIntent(handlerInput, action);
-
-            if (!result.status)
-            {
-                var {speach, prompt} = result;
-                
-                if (speach && prompt)
-                {
-                    console.warn(`Intent("${intent}"): ${speach}`);
-                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
-                }
-
-                if (speach)
-                {
-                    console.warn(`Intent("${intent}"): ${speach}`);
-                    return responseBuilder.speak(speach).getResponse();
-                }
-
-                console.warn(`Intent("${intent}"): No response.`);
-                return responseBuilder.getResponse();
-            }
-
-            return await callback(handlerInput, result);
-        }
-    );
+    return [{status: true, album, items: songs.items}, then];
 };
 
 /*********************************************************************************
  * Play Album Intent
  */
 
-const PlayAlbumIntent = CreateAlbumIntent(
-    "PlayAlbumIntent", "play",
-    async function (handlerInput, {album, songs})
+const PlayAlbumIntent = CreateQueueIntent(
+    "PlayAlbumIntent", "play", Processer,
+    function (handlerInput, {album, items}, data)
     {
-        var speach = `Playing album ${album.Name}, on ${Config.name}`;
-        
-        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${Config.skill.name}`;
+        const { responseBuilder, requestEnvelope } = handlerInput;
 
-        return await AlexaQueue.InjectItems(handlerInput, songs, speach);
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.clear();
+
+        [data.first, data.last] = playlist.prefixItems(items);
+
+        const directive = playlist.getPlayDirective();
+
+        var speach = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
+        
+        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+
+        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+    },
+    function({ requestEnvelope }, {status, items}, data)
+    {
+        if (!status) return;
+
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        const [first, last] = playlist.prefixItems(items, data.last + 1);
+
+        data.last = last;
     }
 );
 
@@ -158,15 +152,49 @@ const PlayAlbumIntent = CreateAlbumIntent(
  * Shuffle Album Intent
  */
 
-const ShuffleAlbumIntent = CreateAlbumIntent(
-    "ShuffleAlbumIntent", "shuffling",
-    async function (handlerInput, {album, songs})
+const ShuffleAlbumIntent = CreateQueueIntent(
+    "ShuffleAlbumIntent", "shuffling", Processer,
+    function (handlerInput, {album, items}, data)
     {
-        var speach = `Shuffling album ${album.Name}, on ${Config.name}`;
-        
-        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${Config.skill.name}`;
+        const { responseBuilder, requestEnvelope } = handlerInput;
 
-        return await AlexaQueue.SetQueueShuffled(handlerInput, songs, speach);
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.clear();
+        
+        items = playlist.shuffleItems(items);
+
+        [data.first, data.last] = playlist.prefixItems(items);
+
+        const directive = playlist.getPlayDirective();
+
+        var speach = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
+        
+        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+
+        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+    },
+    function({ requestEnvelope }, {status, items}, data)
+    {
+        if (!status) return;
+
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        const [first, last] = playlist.prefixItems(items, data.last + 1);
+
+        data.last = last;
+    },
+    function({ requestEnvelope }, {first, last})
+    {
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.shuffleRemainingItems(first, last);
     }
 );
 
@@ -174,15 +202,35 @@ const ShuffleAlbumIntent = CreateAlbumIntent(
  * Queue Album Intent
  */
 
-const QueueAlbumIntent = CreateAlbumIntent(
-    "QueueAlbumIntent", "queue",
-    async function (handlerInput, {album, songs})
+const QueueAlbumIntent = CreateQueueIntent(
+    "QueueAlbumIntent", "queue", Processer,
+    async function (handlerInput, {album, items}, data)
     {
-        var speach = `Added album ${album.Name}, to the queue.`;
-        
-        if (album.AlbumArtist) speach = `Added album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        const { responseBuilder, requestEnvelope } = handlerInput;
 
-        return await AlexaQueue.QueueItems(handlerInput, songs, speach);
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.appendItems(items);
+
+        const directive = playlist.getPlayDirective();
+
+        var speach = `Adding album ${album.Name}, to the queue.`;
+        
+        if (album.AlbumArtist) speach = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+
+        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+    },
+    function({ requestEnvelope }, {status, items}, data)
+    {
+        if (!status) return;
+
+        const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+        const playlist = Devices.getPlayList(deviceID);
+
+        playlist.appendItems(items);
     }
 );
 

@@ -1,5 +1,3 @@
-const Config = require("/data/config.json").jellyfin;
-
 /*********************************************************************************
  * Request Items from API
  *      https://api.jellyfin.org/
@@ -7,7 +5,7 @@ const Config = require("/data/config.json").jellyfin;
 
 const Request = async function(endpoint, params, ...args)
 {
-    const url = new URL(endpoint, Config.host);
+    const url = new URL(endpoint, CONFIG.jellyfin.host);
     
     if (params)
     {
@@ -24,15 +22,13 @@ const Request = async function(endpoint, params, ...args)
         }
     }
 
-    console.log("Requesting: ", url.toString());
-
     const response = await fetch(
         url,
         {
             method: 'GET',
             headers:
             {
-                Authorization: `MediaBrowser Token="${Config.key}"`,
+                Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
@@ -46,6 +42,28 @@ const Request = async function(endpoint, params, ...args)
     
     return {status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
 };
+
+/*********************************************************************************
+ * Paged Items.
+ * Returns the first page and process a function for all pages.
+ */
+
+/*const PagedItems = async function(callback, api, limit, ...args)
+{
+    const result = await api(...args, {limit})
+
+    if (!result.status) return result;
+
+    if (callback)
+    {
+        callback(res);
+
+        for (let i = result.index; i < result.count; i += limit)
+            api(...args, {limit, startIndex: i}).then(callback);
+    };
+
+    return result;
+};*/
 
 /*********************************************************************************
  * Request Artists
@@ -115,11 +133,11 @@ Items.Playlists.Search = async (query, ...params) => await Search(Items.Playlist
 
 Items.Albums.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query, ...params);
+    const result = await Items.MusicGenres.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Albums({genres: result.items.map(item => item.Name).join("|")});
+    const result2 = await Items.Albums({genres: result.items.map(item => item.Name).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -130,11 +148,11 @@ Items.Albums.ByGenre = async function(query, ...params)
 
 Items.Albums.ByArist = async function(query, ...params)
 {
-    const result = await Items.Artists.Search(query, ...params);
+    const result = await Items.Artists.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Albums({artistIds: result.items.map(item => item.Id).join("|")});
+    const result2 = await Items.Albums({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -149,11 +167,11 @@ Items.Albums.ByArist = async function(query, ...params)
 
 Items.Artists.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query, ...params);
+    const result = await Items.MusicGenres.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Artists({genres: result.items.map(item => item.Name).join("|")});
+    const result2 = await Items.Artists({genres: result.items.map(item => item.Name).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -168,11 +186,11 @@ Items.Artists.ByGenre = async function(query, ...params)
 
 Items.Music.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query, ...params);
+    const result = await Items.MusicGenres.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Music({genres: result.items.map(item => item.Name).join("|")});
+    const result2 = await Items.Music({genres: result.items.map(item => item.Name).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -183,11 +201,11 @@ Items.Music.ByGenre = async function(query, ...params)
 
 Items.Music.ByArist = async function(query, ...params)
 {
-    const result = await Items.Artists.Search(query, ...params);
+    const result = await Items.Artists.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Music({artistIds: result.items.map(item => item.Id).join("|")});
+    const result2 = await Items.Music({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -198,11 +216,11 @@ Items.Music.ByArist = async function(query, ...params)
 
 Items.Music.ByAlbum = async function(query, ...params)
 {
-    const result = await Items.Albums.Search(query, ...params);
+    const result = await Items.Albums.Search(query);
 
     if (!result.status) return result;
 
-    const result2 = await Items.Music({albumIds: result.items.map(item => item.Id).join("|")});
+    const result2 = await Items.Music({albumIds: result.items.map(item => item.Id).join("|")}, ...params);
 
     if (!result2.status) return result2;
 
@@ -215,9 +233,9 @@ Items.Music.ByAlbum = async function(query, ...params)
  * Find Songs by playlist
  */
 
-Items.Music.ByPlayList = async function(query, ...params)
+/*Items.Music.ByPlayList = async function(query, ...params)
 {
-    const result = await Items.Playlists.Search(query, {fields: "ItemIds"}, ...params);
+    const result = await Items.Playlists.Search(query, {fields: "ItemIds"});
 
     if (!result.status) return result;
 
@@ -225,7 +243,7 @@ Items.Music.ByPlayList = async function(query, ...params)
 
     for(item of result.items)
     {
-        const result2 = await Items({parentId: item.Id});
+        const result2 = await Items({parentId: item.Id}, ...params);
 
         if (!result2.status) continue;
 
@@ -237,7 +255,7 @@ Items.Music.ByPlayList = async function(query, ...params)
     result.items = Object.values(items);
 
     return result;
-};
+};*/
 
 /*********************************************************************************
  * Exports

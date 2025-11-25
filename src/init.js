@@ -10,10 +10,10 @@ console.log("           Jelly Music");
 console.log("=====================================================================");
 
 /*********************************************************************************
- * Create default config
+ * Create default CONFIG
  */
 
-var Config = {
+CONFIG = {
     jellyfin:
     {
         
@@ -28,90 +28,117 @@ var Config = {
     }
 };
 
+
 /*********************************************************************************
- * Load existing config file
+ * 
  */
 
-try
+DATA_DIR = "/data";
+
+if (!fs.existsSync(DATA_DIR))
 {
-    if (fs.existsSync("/data/config.json"))
+    DATA_DIR = "./data";
+    assert(fs.existsSync(DATA_DIR), "Data directory not found.");
+}
+
+/*********************************************************************************
+ * Load existing CONFIG file
+ */
+
+CONFIG_FILE = `${DATA_DIR}/config.json`;
+
+try
+{   
+    if (fs.existsSync(CONFIG_FILE))
     {
-        console.log("Loading Config File");
+        console.log("Loading CONFIG File");
         
-        Config = JSON.parse(fs.readFileSync("/data/config.json"));
+        CONFIG = JSON.parse(fs.readFileSync(CONFIG_FILE));
         
-        console.log("Config File loaded sucessfully.");
+        console.log("CONFIG File loaded sucessfully.");
     }
     else
     {
-        console.warn("Config File not found, a new one will be generated using enviroment data.");
+        console.warn("CONFIG File not found, a new one will be generated using enviroment data.");
     }
 }
 catch(error)
 {
-    console.error("Warning: Error loading config.json server will not start.");
+    console.error("Warning: Error loading CONFIG.json server will not start.");
     throw error;
 }
 
 /*********************************************************************************
- * Validate JellyFin Config
+ * Validate JellyFin CONFIG
  */
 
-Config.jellyfin.host = process.env.JELLYFIN_HOST || Config.jellyfin.host;
+CONFIG.jellyfin.host = process.env.JELLYFIN_HOST || CONFIG.jellyfin.host;
 
-assert(Config.jellyfin.host, `No Jellyfin host address defined.\nThis can set in config under "jellyfin.host" or as enviroment value JELLYFIN_HOST.`);
+assert(CONFIG.jellyfin.host, `No Jellyfin host address defined.\nThis can set in CONFIG under "jellyfin.host" or as enviroment value JELLYFIN_HOST.`);
 
-Config.jellyfin.key = process.env.JELLYFIN_KEY || Config.jellyfin.key;
+CONFIG.jellyfin.key = process.env.JELLYFIN_KEY || CONFIG.jellyfin.key;
 
-assert(Config.jellyfin.key, `No Jellyfin api key defined.\nThis can set in config under "jellyfin.key" or as enviroment value JELLYFIN_KEY.`);
+assert(CONFIG.jellyfin.key, `No Jellyfin api key defined.\nThis can set in CONFIG under "jellyfin.key" or as enviroment value JELLYFIN_KEY.`);
+
+CONFIG.jellyfin.limit = process.env.JELLYFIN_LIMIT || CONFIG.jellyfin.limit || 10;
 
 /*********************************************************************************
- * Validate Skill Config
+ * Validate Skill CONFIG
  */
 
-Config.skill.name = process.env.SKILL_NAME || Config.skill.name;
+CONFIG.skill.name = process.env.SKILL_NAME || CONFIG.skill.name;
 
-assert(Config.skill.name, `No skill name defined.\nThis can set in config under "skill.name" or as enviroment value SKILL_NAME.`);
+assert(CONFIG.skill.name, `No skill name defined.\nThis can set in CONFIG under "skill.name" or as enviroment value SKILL_NAME.`);
 
 //TODO: Skill name needs to be 2 words.
 
-//TODO: Config.skill.id maybe needed if I ever add automatic skill building.
+//TODO: CONFIG.skill.id maybe needed if I ever add automatic skill building.
 
 /*********************************************************************************
- * Validate Server Config
+ * Validate Server CONFIG
  */
 
-Config.server.port = process.env.PORT || Config.server.port;
+CONFIG.server.port = process.env.PORT || CONFIG.server.port;
 
-assert(Config.server.port, `No port defined.\nThis can set in config under "server.port" or as enviroment value PORT.`);
+assert(CONFIG.server.port, `No port defined.\nThis can set in CONFIG under "server.port" or as enviroment value PORT.`);
 
 /*********************************************************************************
- * Confirm Config
+ * Confirm CONFIG
  */
 
 //TODO: Validate Jellyfin API key
 
 /*********************************************************************************
- * Save the config
+ * Save the CONFIG
  */
-
 
 try
 {
-    console.log("Saving Config File");
-    fs.writeFileSync("/data/config.json", JSON.stringify(Config, undefined, 2));
+    console.log("Saving CONFIG File");
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(CONFIG, undefined, 2));
 }
 catch(error)
 {
-    console.error("Warning: Error saving config.json server will not start.");
+    console.error("Warning: Error saving CONFIG.json server will not start.");
     throw error;
 }
-
 
 /*********************************************************************************
  * Start the service.
  */
 
-console.log("Loading Server....");
+const { Save, Load } = require("./playlist/save-file.js");
 
-require("./server.js");
+Load().then(
+    () => {
+
+        setInterval(Save, 60000);
+
+        console.log("Loading Server....");
+
+        require("./server.js");
+
+    }
+);
+
+

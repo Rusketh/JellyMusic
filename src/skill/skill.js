@@ -16,6 +16,10 @@ const SongIntents = require("./song-intents.js");
 
 const PlaylistIntents = require("./playlist-intents.js");
 
+const GenreIntents = require("./genre-intent.js");
+
+const QueryIntents = require("./query-intents.js");
+
 /*********************************************************************************
  * Error Handler
  */
@@ -24,14 +28,23 @@ const ErrorHandler = {
     canHandle: () => true,
     handle: function (handlerInput, error)
     {
-        const {responseBuilder} = handlerInput;
+        const {responseBuilder, requestEnvelope} = handlerInput;
+
+        if (!error && requestEnvelope.request)
+            error = requestEnvelope.request.error;
 
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-
         console.error(`Error handled: ${type}`);
+
+        if (type == "IntentRequest")
+        {
+            const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
+            console.error(`Intent: ${intent}`);
+        }
+
         console.error(error);
 
-        return handlerInput.responseBuilder.getResponse();
+        return responseBuilder.getResponse();
     }
 };
 
@@ -42,6 +55,7 @@ const ErrorHandler = {
 const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         ControlHandlers.LaunchHandler,
+        ControlHandlers.PlaybackFailedHandler,
         ControlHandlers.PlaybackNearlyFinishedHandler,
         ControlHandlers.PlaybackFinishedHandler,
         ControlHandlers.PlaybackStoppedHandler,
@@ -57,20 +71,26 @@ const skill = Alexa.SkillBuilders.custom()
         ControlIntents.ResumeIntent,
         ControlIntents.NextIntent,
         ControlIntents.PreviousIntent,
+        ControlIntents.ClearQueueIntent,
 
         AlbumIntents.PlayAlbumIntent,
         ArtistIntents.PlayArtistIntent,
         PlaylistIntents.PlayPlaylistIntent,
         SongIntents.PlaySongIntent,
+        GenreIntents.PlayGenreIntent,
 
         AlbumIntents.ShuffleAlbumIntent,
         ArtistIntents.ShuffleArtistIntent,
         PlaylistIntents.ShufflePlaylistIntent,
+        GenreIntents.ShuffleGenreIntent,
 
         AlbumIntents.QueueAlbumIntent,
         ArtistIntents.QueueArtistIntent,
         PlaylistIntents.QueuePlaylistIntent,
         SongIntents.QueueSongIntent,
+        GenreIntents.QueueGenreIntent,
+
+        QueryIntents.WhatThisIntent,
 
         ErrorHandler
     ).addErrorHandlers(

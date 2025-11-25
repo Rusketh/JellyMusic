@@ -1,6 +1,6 @@
-const AlexaQueue = require("../queue/alexa-queque.js");
-
 const { CreateHandler } = require("./alexa-helper.js");
+
+const Devices = require("../playlist/devices.js");
 
 /*********************************************************************************
  * Launch App
@@ -8,7 +8,16 @@ const { CreateHandler } = require("./alexa-helper.js");
 
 const LaunchHandler = CreateHandler(
     "LaunchRequest",
-    AlexaQueue.ClearQueue
+    Devices.onLaunch
+);
+
+/*********************************************************************************
+ * Playback Nearly Finished
+ */
+
+const PlaybackFailedHandler = CreateHandler(
+    "AudioPlayer.PlaybackFailed",
+    Devices.onPlaybackFailed
 );
 
 /*********************************************************************************
@@ -17,7 +26,7 @@ const LaunchHandler = CreateHandler(
 
 const PlaybackNearlyFinishedHandler = CreateHandler(
     "AudioPlayer.PlaybackNearlyFinished",
-    AlexaQueue.QueueNext
+    Devices.onPlaybackNearlyFinished
 );
 
 /*********************************************************************************
@@ -26,7 +35,7 @@ const PlaybackNearlyFinishedHandler = CreateHandler(
 
 const PlaybackFinishedHandler = CreateHandler(
     "AudioPlayer.PlaybackFinished",
-    AlexaQueue.Finished
+    Devices.onPlaybackFinished
 );
 
 /*********************************************************************************
@@ -35,7 +44,7 @@ const PlaybackFinishedHandler = CreateHandler(
 
 const PlaybackStoppedHandler = CreateHandler(
     "AudioPlayer.PlaybackStopped",
-    AlexaQueue.Stop
+    Devices.onPlaybackStopped
 );
 
 /*********************************************************************************
@@ -44,7 +53,7 @@ const PlaybackStoppedHandler = CreateHandler(
 
 const PlaybackStartedHandler = CreateHandler(
     "AudioPlayer.PlaybackStarted",
-    AlexaQueue.Start
+    Devices.onPlaybackStarted
 );
 
 /*********************************************************************************
@@ -53,7 +62,7 @@ const PlaybackStartedHandler = CreateHandler(
 
 const PlayButtonHandler = CreateHandler(
     "PlaybackController.PlayCommandIssued",
-    AlexaQueue.Resume
+    Devices.doResume
 );
 
 /*********************************************************************************
@@ -62,7 +71,7 @@ const PlayButtonHandler = CreateHandler(
 
 const PauseButtonHandler = CreateHandler(
     "PlaybackController.PauseCommandIssued",
-    AlexaQueue.Pause
+    Devices.doPause
 );
 
 /*********************************************************************************
@@ -71,7 +80,7 @@ const PauseButtonHandler = CreateHandler(
 
 const NextButtonHandler = CreateHandler(
     "PlaybackController.NextCommandIssued",
-    AlexaQueue.PlayNext
+    Devices.doPlayNext
 );
 
 /*********************************************************************************
@@ -80,7 +89,7 @@ const NextButtonHandler = CreateHandler(
 
 const PreviousButtonHandler = CreateHandler(
     "PlaybackController.PreviousCommandIssued",
-    AlexaQueue.PlayPrevious
+    Devices.doPlayPrevious
 );
 
 /*********************************************************************************
@@ -89,6 +98,7 @@ const PreviousButtonHandler = CreateHandler(
 
 module.exports = {
     LaunchHandler,
+    PlaybackFailedHandler,
     PlaybackNearlyFinishedHandler,
     PlaybackFinishedHandler,
     PlaybackStoppedHandler,

@@ -4,6 +4,7 @@
 # Jelly Music
 
   
+  
 
 ---
 
@@ -20,6 +21,23 @@ Jelly Music is a **self-hosted Alexa Skill** designed for your Jellyfin server. 
 * "Alexa, ask Jelly Music to play album **Creeping Death** by Metallica."
 
 * "Alexa, ask Jelly Music to shuffle songs by **Black Sabbath**."
+
+
+  
+
+---
+
+  
+
+## Features
+
+  
+* Per device music queues.
+
+* Play music from your Jellyfin server.
+
+* Support to search by, **Song Name**, **Album Name**, **Artist Name**, **Playlist** and **Genre***.
+
 
   
 
@@ -127,9 +145,7 @@ The **configuration file** for Jelly Music, as well as the **SQLite database** u
 
   
 
-- This directory **must be mapped as a volume** in your Docker container to ensure data persistence. Without it, your configurations and device queues will be lost when the container stops or is removed.
-
-- The SQLite database stores per-device queues. While efforts are made to manage its size, please be aware that its growth and cleanup are not guaranteed to be optimized in this alpha stage.
+- This directory **must be mapped as a volume** in your Docker container to ensure data persistence. Without it, your configuration will be lost when the container stops or is removed.
 
   
 
@@ -175,6 +191,7 @@ Once your Alexa Skill is created, you need to configure it. This might seem daun
 
 That's it! Click **"Save"** at the top, then hit **"Build Skill"**. Hopefully, after a few minutes, it will build successfully, and you'll be ready to go and install the skill. Start the container and enjoy listening to your music!
 
+**Note:** When upgrading to new versions **New Features** will require you to update your ``skill.json`` as described in steps 3 - 4.
   
 
 ### Enabling Your Skill in the Alexa App
@@ -229,7 +246,10 @@ You can use the following commands with Alexa:
 
 *  **Play/Queue/Shuffle** playlist `{playlist name}`
 
-  
+*  **Play/Queue/Shuffle** `{genre}` music
+
+*  Clear the queue
+
 
 ---
 
