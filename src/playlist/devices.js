@@ -95,7 +95,7 @@ const onPlaybackFailed = function(handlerInput)
 
     const playlist = getPlayList(deviceID);
 
-    const directive = playlist.getPlayDirective(handlerInput);
+    var directive = playlist.getPlayDirective(handlerInput);
 
     console.debug("Playback failed!");
 

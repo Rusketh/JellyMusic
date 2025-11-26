@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "media server",
+            "invocationName": "jelly music",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -247,6 +247,30 @@
                     "samples": [
                         "shuffle {genre} music",
                         "shuffle genre {genre}"
+                    ]
+                },
+                {
+                    "name": "WhatThisIntent",
+                    "slots": [],
+                    "samples": [
+                        "what is playing",
+                        "what is this",
+                        "what is the name of this song",
+                        "What is this song"
+                    ]
+                },
+                {
+                    "name": "QueueArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "add songs by {artistname} to the queue",
+                        "queue artist {artistname}",
+                        "queue songs by {artistname}"
                     ]
                 }
             ],
