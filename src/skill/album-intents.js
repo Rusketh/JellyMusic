@@ -46,7 +46,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         
         if (!artists.status || !artists.items[0])
         {
-            const speach2 = `I didn't find an artist called ${slots.artistname.value}.`;
+            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
             return [{status: false, speach}];
         }
 

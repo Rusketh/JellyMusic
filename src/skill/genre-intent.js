@@ -103,7 +103,7 @@ const PlayGenreIntent = CreateQueueIntent(
 
 const ShuffleGenreIntent = CreateQueueIntent(
     "ShuffleGenreIntent", "shuffling", Processer,
-    function (handlerInput, {genres, songs}, data)
+    function (handlerInput, {genres, item}, data)
     {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
