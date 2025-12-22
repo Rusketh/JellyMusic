@@ -12,7 +12,16 @@ const CreateHandler = function(type, callback)
             {
                 try
                 {
-                    return Alexa.getRequestType(handlerInput.requestEnvelope) === type;
+                    const {requestEnvelope, responseBuilder} = handlerInput;
+
+                    if (CONFIG.skill.id != requestEnvelope.context.System.application.applicationId)
+                    {
+                        console.error("Unauthorized request blocked.");
+                        responseBuilder.withShouldEndSession(true);
+                        return false;
+                    }
+
+                    return Alexa.getRequestType(requestEnvelope) === type;
                 }
                 catch(err)
                 {
@@ -56,7 +65,16 @@ const CreateIntent = function(intent, callback)
             {
                 try
                 {
-                    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(handlerInput.requestEnvelope) === intent;
+                    const {requestEnvelope, responseBuilder} = handlerInput;
+
+                    if (CONFIG.skill.id != requestEnvelope.context.System.application.applicationId)
+                    {
+                        console.error("Unauthorized request blocked.");
+                        responseBuilder.withShouldEndSession(true);
+                        return false;
+                    }
+
+                    return Alexa.getRequestType(requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(requestEnvelope) === intent;
                 }
                 catch(err)
                 {
