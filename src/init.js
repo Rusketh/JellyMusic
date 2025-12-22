@@ -20,6 +20,7 @@ CONFIG = {
     },
     skill:
     {
+        id: null,
         name: "Jelly Music"
     },
     server:
@@ -92,7 +93,9 @@ assert(CONFIG.skill.name, `No skill name defined.\nThis can set in CONFIG under 
 
 //TODO: Skill name needs to be 2 words.
 
-//TODO: CONFIG.skill.id maybe needed if I ever add automatic skill building.
+CONFIG.skill.id = process.env.SKILL_ID || CONFIG.skill.id;
+
+assert(CONFIG.skill.id, `No skill id defined.\nThis can set in CONFIG under "skill.id" or as enviroment value SKILL_ID.`);
 
 /*********************************************************************************
  * Validate Server CONFIG

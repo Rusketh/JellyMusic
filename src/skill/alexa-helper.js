@@ -12,7 +12,8 @@ const CreateHandler = function(type, callback)
             {
                 try
                 {
-                    return Alexa.getRequestType(handlerInput.requestEnvelope) === type;
+                    const {requestEnvelope} = handlerInput;
+                    return Alexa.getRequestType(requestEnvelope) === type;
                 }
                 catch(err)
                 {
@@ -56,7 +57,9 @@ const CreateIntent = function(intent, callback)
             {
                 try
                 {
-                    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(handlerInput.requestEnvelope) === intent;
+                    const {requestEnvelope} = handlerInput;
+
+                    return Alexa.getRequestType(requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(requestEnvelope) === intent;
                 }
                 catch(err)
                 {

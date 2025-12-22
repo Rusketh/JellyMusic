@@ -90,12 +90,10 @@ const skill = Alexa.SkillBuilders.custom()
         SongIntents.QueueSongIntent,
         GenreIntents.QueueGenreIntent,
 
-        QueryIntents.WhatThisIntent,
-
-        ErrorHandler
+        QueryIntents.WhatThisIntent
     ).addErrorHandlers(
         ErrorHandler
-    ).create();
+    ).withSkillId(CONFIG.skill.id).create();
 
 /*********************************************************************************
  * Exports
