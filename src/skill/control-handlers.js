@@ -93,6 +93,23 @@ const PreviousButtonHandler = CreateHandler(
 );
 
 /*********************************************************************************
+ * System Exception Encountered
+ *
+ * This handler is triggered when Alexa reports a runtime exception that occurred
+ * during audio playback or skill execution (for example, AudioPlayer failures).
+ *
+ * These requests do NOT have a session and do NOT expect speech or directives.
+ * The correct behavior is to acknowledge the event and return an empty response
+ * to prevent the SDK from throwing "Unable to find a suitable request handler".
+ *
+ * No recovery or user-facing response is performed here by design.
+ */
+const ExceptionEncounteredHandler = CreateHandler(
+    "System.ExceptionEncountered",
+    async (handlerInput) => handlerInput.responseBuilder.getResponse()
+);
+
+/*********************************************************************************
  * Exports
  */
 

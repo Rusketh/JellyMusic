@@ -186,28 +186,20 @@ PlayList.getPlayPreviousDirective = function(handlerInput)
 };
 
 
-PlayList.Validate = function(directive, {attributesManager})
+PlayList.Validate = function(directive, handlerInput)
 {
-    var token = directive[2];
-    /*let sessionAttributes = attributesManager.getSessionAttributes();
+    const token = directive && directive[2];
 
-    if (sessionAttributes.playbackToken == token) return false;
+    // Si no hay token, no podemos validar repetición; no rompas el flujo.
+    if (!token) return true;
 
-    sessionAttributes.playbackToken = token;
-
-    attributesManager.setSessionAttributes(sessionAttributes);*/
-    
-    if (this.playbackToken && this.playbackToken == token)
-    {
+    if (this.playbackToken && this.playbackToken === token) {
         console.log(`Repeating token: ${token}`);
         return false;
     }
 
-    console.log(`None repeating token: ${token}`);
-
+    console.log(`Non repeating token: ${token}`);
     this.playbackToken = token;
-    
-
     return true;
 }
 

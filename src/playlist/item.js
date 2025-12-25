@@ -37,10 +37,19 @@ PlayListItem.new = function(item, token)
 
 PlayListItem.getStreamURL = function()
 {
-    const url = new URL(`/Items/${this.Item.Id}/Download`, CONFIG.jellyfin.host);
+    // Universal audio endpoint supports direct play OR transcoding
+    const url = new URL(`/Audio/${this.Item.Id}/universal`, CONFIG.jellyfin.host);
 
     url.searchParams.append("api_key", String(CONFIG.jellyfin.key));
-    
+
+    // Force a widely supported format for Alexa
+    url.searchParams.append("AudioCodec", "mp3");
+    url.searchParams.append("Container", "mp3");
+    url.searchParams.append("TranscodingContainer", "mp3");
+
+    // Optional: cap bitrate (helps stability)
+    url.searchParams.append("MaxStreamingBitrate", "192000");
+
     return url.toString();
 };
 

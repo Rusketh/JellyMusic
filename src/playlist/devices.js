@@ -112,7 +112,7 @@ const onPlaybackFailed = function(handlerInput)
 
     directive = next.getPlayDirective(directive, handlerInput);
 
-    if (!directive || !playlist.Validate()) return responseBuilder.getResponse();
+    if (!directive || !playlist.Validate(directive, handlerInput)) return responseBuilder.getResponse();
 
     return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
 };
