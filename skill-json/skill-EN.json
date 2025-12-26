@@ -256,7 +256,7 @@
                         "what is playing",
                         "what is this",
                         "what is the name of this song",
-                        "What is this song"
+                        "what is this song"
                     ]
                 },
                 {
@@ -272,9 +272,65 @@
                         "queue artist {artistname}",
                         "queue songs by {artistname}"
                     ]
+                },
+
+                {
+                    "name": "PlayMovieIntent",
+                    "slots": [
+                        { "name": "moviename", "type": "AMAZON.SearchQuery" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "play the movie {moviename} on {devicename}",
+                        "watch {moviename} on {devicename}",
+                        "play the movie {moviename}"
+                    ]
+                },
+                {
+                    "name": "PlaySeriesIntent",
+                    "slots": [
+                        { "name": "seriesname", "type": "AMAZON.SearchQuery" },
+                        { "name": "season", "type": "AMAZON.NUMBER" },
+                        { "name": "episode", "type": "AMAZON.NUMBER" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "play the series {seriesname} on {devicename}",
+                        "play {seriesname} on {devicename}",
+                        "play season {season} episode {episode} of {seriesname} on {devicename}",
+                        "play season {season} of {seriesname} on {devicename}",
+                        "play the series {seriesname}"
+                    ]
+                },
+                {
+                    "name": "ListPlaybackDevicesIntent",
+                    "slots": [],
+                    "samples": [
+                        "list devices",
+                        "what devices are available",
+                        "where can I play video"
+                    ]
                 }
             ],
-            "types": []
+            "types": [
+                {
+                    "name": "PLAYBACK_DEVICE",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Fire TV Salon",
+                                "synonyms": ["living room tv", "living room"]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Samsung TV Dormitorio",
+                                "synonyms": ["bedroom tv", "bedroom"]
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     }
 }

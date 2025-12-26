@@ -320,9 +320,65 @@
                         "añade {artistname} a la cola",
                         "pon en cola {artistname}"
                     ]
+                },
+
+                {
+                    "name": "PlayMovieIntent",
+                    "slots": [
+                        { "name": "moviename", "type": "AMAZON.SearchQuery" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "reproducir la película {moviename} en {devicename}",
+                        "ver {moviename} en {devicename}",
+                        "reproducir la película {moviename}"
+                    ]
+                },
+                {
+                    "name": "PlaySeriesIntent",
+                    "slots": [
+                        { "name": "seriesname", "type": "AMAZON.SearchQuery" },
+                        { "name": "season", "type": "AMAZON.NUMBER" },
+                        { "name": "episode", "type": "AMAZON.NUMBER" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "reproducir la serie {seriesname} en {devicename}",
+                        "reproducir {seriesname} en {devicename}",
+                        "reproducir temporada {season} episodio {episode} de {seriesname} en {devicename}",
+                        "reproducir temporada {season} de {seriesname} en {devicename}",
+                        "reproducir la serie {seriesname}"
+                    ]
+                },
+                {
+                    "name": "ListPlaybackDevicesIntent",
+                    "slots": [],
+                    "samples": [
+                        "lista de dispositivos",
+                        "qué dispositivos hay",
+                        "qué dispositivos están disponibles"
+                    ]
                 }
             ],
-            "types": []
+            "types": [
+                {
+                    "name": "PLAYBACK_DEVICE",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Fire TV Salon",
+                                "synonyms": ["tele del salón", "tv del salón", "salón"]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Samsung TV Dormitorio",
+                                "synonyms": ["tele del dormitorio", "tv del cuarto", "dormitorio"]
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     }
 }
