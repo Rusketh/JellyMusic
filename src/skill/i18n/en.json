@@ -1,0 +1,52 @@
+{
+  "ERROR_GENERIC": "An internal error has occurred.",
+
+  "MISSING_SONG_NAME": "I didn't catch the song name.",
+  "SONG_NOT_FOUND": "I didn't find a song called {{song}}.",
+  "ARTIST_NOT_FOUND": "I didn't find an artist called {{artist}}.",
+  "SONG_NOT_FOUND_SUGGESTION": "I didn't find a track called {{song}} by {{artist}}, you might have meant {{suggestion}}.",
+  "SONG_NOT_FOUND_BY_ARTIST": "I didn't find a track called {{song}} by {{artist}}.",
+
+  "PLAYING_SONG": "Playing {{song}} by {{artist}}, on {{skill}}",
+  "PLAYING_SONG_NO_ARTIST": "Playing {{song}}, on {{skill}}",
+  "ADDED_SONG": "Added {{song}} to the queue.",
+  "ADDED_SONG_NO_ARTIST": "Added {{song}} to the queue.",
+
+  "MISSING_PLAYLIST_NAME": "I didn't catch the playlist name.",
+  "PLAYLIST_NOT_FOUND": "I didn't find a playlist called {{playlist}}.",
+  "PLAYING_PLAYLIST": "Playing songs from playlist {{playlist}}, on {{skill}}",
+  "ADDED_PLAYLIST_SONGS": "Added {{count}} songs from playlist {{playlist}} to the queue.",
+
+  "MISSING_GENRE": "I didn't catch the genre of music.",
+  "GENRE_NOT_FOUND": "I didn't find a genre called {{genre}}.",
+  "PLAYING_GENRE": "Playing {{genre}}, on {{skill}}",
+  "PLAYING_GENRE_AND_SIMILAR": "Playing {{genre}} and similar genres, on {{skill}}",
+  "ADDED_GENRE_SONGS": "Added {{count}} {{genre}} songs to the queue.",
+  "SHUFFLE_GENRE": "Shuffling {{genre}}, on {{skill}}",
+  "SHUFFLE_GENRE_AND_SIMILAR": "Shuffling {{genre}} and similar genres, on {{skill}}",
+
+  "MISSING_ARTIST_NAME": "I didn't catch the artist name.",
+  "NO_MUSIC_BY_ARTIST": "I didn't find music by {{artist}}.",
+  "PLAYING_ARTIST": "Playing songs by {{artist}}, on {{skill}}",
+  "ADDED_ARTIST_SONGS": "Added {{count}} songs by {{artist}} to the queue.",
+
+  "MISSING_ALBUM_NAME": "Which album would you like to {{action}}? I didn't catch the album name.",
+  "ALBUM_NOT_FOUND": "I didn't find an album called {{album}}.",
+  "ALBUM_ARTIST_NOT_FOUND": "I didn't find an artist called {{artist}}.",
+  "ALBUM_SUGGESTION": "I didn't find an album called {{album}} by {{artist}}, you might have meant {{suggestion}}.",
+  "NO_MUSIC_IN_ALBUM": "I didn't find any music in the album {{album}}.",
+  "NO_SONGS_OF_GENRE": "No songs of {{genre}} were found.",
+  "QUEUE_FINISHED": "There are no more songs left in the queue.",
+  "PLAYING_ALBUM": "Playing album {{album}}, on {{skill}}",
+  "PLAYING_ALBUM_BY_ARTIST": "Playing album {{album}} by {{artist}}, on {{skill}}",
+  "ADDED_ALBUM_TO_QUEUE": "Adding album {{album}} to the queue.",
+  "ALBUM_NOT_FOUND_BY_ARTIST": "I didn't find an album called {{album}} by {{artist}}.",
+  "SHUFFLE_ALBUM": "Shuffling album {{album}}, on {{skill}}",
+  "SHUFFLE_ALBUM_BY_ARTIST": "Shuffling album {{album}} by {{artist}}, on {{skill}}",
+  "SHUFFLE_ARTIST": "Shuffling songs by artist {{artist}}, on {{skill}}",
+  "SHUFFLE_PLAYLIST": "Shuffling songs from playlist {{playlist}}, on {{skill}}",
+  "PLAYLIST_EMPTY": "The playlist {{playlist}} is empty.",
+
+  "NO_SONG_PLAYING": "There is currently no song playing.",
+  "CURRENT_SONG": "The current song is {{song}} by {{artist}}"
+}

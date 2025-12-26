@@ -6,6 +6,7 @@ const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Process Intent: Get Song Intent
@@ -22,7 +23,7 @@ const Processor = async function(handlerInput, action = "play")
 
     if (!slots.songname || !slots.songname.value)
     {
-        const speach = `I didn't catch the song name.`;
+        const speach = tFor(handlerInput, 'MISSING_SONG_NAME');
         return [{status: false, speach}];
     }
 
@@ -35,7 +36,7 @@ const Processor = async function(handlerInput, action = "play")
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find a song called ${slots.songname.value}.`;
+        const speach = tFor(handlerInput, 'SONG_NOT_FOUND', { song: slots.songname.value });
         return [{status: false, speach}];
     }
 
@@ -52,7 +53,7 @@ const Processor = async function(handlerInput, action = "play")
         
         if (!artists.status || !artists.items[0])
         {
-            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
+            const speach = tFor(handlerInput, 'ARTIST_NOT_FOUND', { artist: slots.artistname.value });
             return [{status: false, speach}];
         }
 
@@ -81,13 +82,13 @@ const Processor = async function(handlerInput, action = "play")
                 {
                     const suggestion = `${song.Name} by ${song.AlbumArtist}`;
 
-                    const speach = `I didn't find a track called ${slots.songname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
+                    const speach = tFor(handlerInput, 'SONG_NOT_FOUND_SUGGESTION', { song: slots.songname.value, artist: artist.name || slots.artistname.value, suggestion });
                     
                     return [{status: false, speach}];
                 }
                 else
                 {
-                    const speach = `I didn't find a track called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    const speach = tFor(handlerInput, 'SONG_NOT_FOUND_BY_ARTIST', { song: slots.songname.value, artist: artist.name || slots.artistname.value });
                     return [{status: false, speach}];
                 }
             }
@@ -117,9 +118,9 @@ const PlaySongIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing ${items[0].Name}, on ${CONFIG.name}`;
+        var speach = tFor(handlerInput, 'PLAYING_SONG_NO_ARTIST', { song: items[0].Name, skill: CONFIG.skill.name });
         
-        if (items[0].AlbumArtist) speach = `Playing ${items[0].Name} by ${items[0].AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (items[0].AlbumArtist) speach = tFor(handlerInput, 'PLAYING_SONG', { song: items[0].Name, artist: items[0].AlbumArtist, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     }
@@ -143,9 +144,9 @@ const QueueSongIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${items[0].Name}, to the queue.`;
+        var speach = tFor(handlerInput, 'ADDED_SONG_NO_ARTIST', { song: items[0].Name });
         
-        if (items[0].AlbumArtist) speach = `Added ${items[0].Name} by ${items[0].AlbumArtist}, to the queue.`;
+        if (items[0].AlbumArtist) speach = tFor(handlerInput, 'ADDED_SONG', { song: items[0].Name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     }

@@ -8,6 +8,7 @@ const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Process Intent: Get Genre Intent
@@ -24,7 +25,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.genre || !slots.genre.value)
     {
-        const speach = `I didn't catch the genre of music.`;
+        const speach = tFor(handlerInput, 'MISSING_GENRE');
         return [{status: false, speach}];
     }
 
@@ -36,7 +37,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         
     if (!genres.status || !genres.items[0])
     {
-        const speach = `I didn't find a genre called ${slots.genre.value}.`;
+        const speach = tFor(handlerInput, 'GENRE_NOT_FOUND', { genre: slots.genre.value });
         return [{status: false, speach}];
     }
     const genreIds = genres.items.map(item => item.Id).join("|");
@@ -45,7 +46,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     
     if (!songs.status || !songs.items[0])
     {
-        const speach = `No songs of ${slots.genre.value} where found.`;
+        const speach = tFor(handlerInput, 'NO_SONGS_OF_GENRE', { genre: slots.genre.value });
         return [{status: false, speach}];
     }
 
@@ -82,10 +83,10 @@ const PlayGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'PLAYING_GENRE', { genre: genres[0].Name, skill: CONFIG.skill.name });
         
         if (genres.length > 1)
-            var speach = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speach = tFor(handlerInput, 'PLAYING_GENRE_AND_SIMILAR', { genre: genres[0].Name, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -125,10 +126,10 @@ const ShuffleGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'SHUFFLE_GENRE', { genre: genres[0].Name, skill: CONFIG.skill.name });
 
         if (genres.length > 1)
-            var speach = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speach = tFor(handlerInput, 'SHUFFLE_GENRE_AND_SIMILAR', { genre: genres[0].Name, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -172,10 +173,10 @@ const QueueGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
+        var speach = tFor(handlerInput, 'ADDED_GENRE_SONGS', { count, genre: genres[0].Name });
 
         if (genres.length > 1)
-            var speach = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
+            var speach = tFor(handlerInput, 'ADDED_GENRE_SONGS', { count, genre: genres[0].Name });
     
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },

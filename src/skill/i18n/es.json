@@ -1,0 +1,52 @@
+{
+  "ERROR_GENERIC": "Ha ocurrido un error interno.",
+
+  "MISSING_SONG_NAME": "No he captado el nombre de la canción.",
+  "SONG_NOT_FOUND": "No he encontrado una canción llamada {{song}}.",
+  "ARTIST_NOT_FOUND": "No he encontrado un artista llamado {{artist}}.",
+  "SONG_NOT_FOUND_SUGGESTION": "No encontré la canción {{song}} de {{artist}}, quizás quisiste decir {{suggestion}}.",
+  "SONG_NOT_FOUND_BY_ARTIST": "No encontré la canción {{song}} de {{artist}}.",
+
+  "PLAYING_SONG": "Reproduciendo {{song}} de {{artist}}, en {{skill}}",
+  "PLAYING_SONG_NO_ARTIST": "Reproduciendo {{song}}, en {{skill}}",
+  "ADDED_SONG": "Añadida {{song}} a la cola.",
+  "ADDED_SONG_NO_ARTIST": "Añadida {{song}} a la cola.",
+
+  "MISSING_PLAYLIST_NAME": "No he captado el nombre de la lista.",
+  "PLAYLIST_NOT_FOUND": "No he encontrado una lista llamada {{playlist}}.",
+  "PLAYING_PLAYLIST": "Reproduciendo canciones de la lista {{playlist}}, en {{skill}}",
+  "ADDED_PLAYLIST_SONGS": "Añadidas {{count}} canciones de la lista {{playlist}} a la cola.",
+
+  "MISSING_GENRE": "No he captado el género musical.",
+  "GENRE_NOT_FOUND": "No he encontrado un género llamado {{genre}}.",
+  "PLAYING_GENRE": "Reproduciendo {{genre}}, en {{skill}}",
+  "PLAYING_GENRE_AND_SIMILAR": "Reproduciendo {{genre}} y géneros similares, en {{skill}}",
+  "ADDED_GENRE_SONGS": "Añadidas {{count}} canciones de {{genre}} a la cola.",
+  "SHUFFLE_GENRE": "Barajando {{genre}}, en {{skill}}",
+  "SHUFFLE_GENRE_AND_SIMILAR": "Barajando {{genre}} y géneros similares, en {{skill}}",
+
+  "MISSING_ARTIST_NAME": "No he captado el nombre del artista.",
+  "NO_MUSIC_BY_ARTIST": "No he encontrado música de {{artist}}.",
+  "PLAYING_ARTIST": "Reproduciendo canciones de {{artist}}, en {{skill}}",
+  "ADDED_ARTIST_SONGS": "Añadidas {{count}} canciones de {{artist}} a la cola.",
+
+  "MISSING_ALBUM_NAME": "¿Qué álbum te gustaría {{action}}? No he captado el nombre del álbum.",
+  "ALBUM_NOT_FOUND": "No he encontrado un álbum llamado {{album}}.",
+  "ALBUM_ARTIST_NOT_FOUND": "No he encontrado un artista llamado {{artist}}.",
+  "ALBUM_SUGGESTION": "No encontré el álbum {{album}} de {{artist}}, quizás quisiste decir {{suggestion}}.",
+  "NO_MUSIC_IN_ALBUM": "No encontré música en el álbum {{album}}.",
+  "NO_SONGS_OF_GENRE": "No se encontraron canciones de {{genre}}.",
+  "QUEUE_FINISHED": "No hay más canciones en la cola.",
+  "PLAYING_ALBUM": "Reproduciendo el álbum {{album}}, en {{skill}}",
+  "PLAYING_ALBUM_BY_ARTIST": "Reproduciendo el álbum {{album}} de {{artist}}, en {{skill}}",
+  "ADDED_ALBUM_TO_QUEUE": "Añadiendo álbum {{album}} a la cola.",
+  "ALBUM_NOT_FOUND_BY_ARTIST": "No he encontrado un álbum llamado {{album}} de {{artist}}.",
+  "SHUFFLE_ALBUM": "Barajando álbum {{album}}, en {{skill}}",
+  "SHUFFLE_ALBUM_BY_ARTIST": "Barajando álbum {{album}} de {{artist}}, en {{skill}}",
+  "SHUFFLE_ARTIST": "Barajando canciones de {{artist}}, en {{skill}}",
+  "SHUFFLE_PLAYLIST": "Barajando canciones de la lista {{playlist}}, en {{skill}}",
+  "PLAYLIST_EMPTY": "La lista {{playlist}} está vacía.",
+
+  "NO_SONG_PLAYING": "Actualmente no hay ninguna canción reproduciéndose.",
+  "CURRENT_SONG": "La canción actual es {{song}} de {{artist}}"
+}

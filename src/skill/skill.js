@@ -20,6 +20,7 @@ const GenreIntents = require("./genre-intent.js");
 
 const QueryIntents = require("./query-intents.js");
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Error Handler
@@ -45,7 +46,8 @@ const ErrorHandler = {
 
         Log.error(error);
 
-        return responseBuilder.getResponse();
+        const speach = tFor(handlerInput, 'ERROR_GENERIC');
+        return responseBuilder.speak(speach).getResponse();
     }
 };
 

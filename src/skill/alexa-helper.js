@@ -1,5 +1,6 @@
 const Alexa = require('ask-sdk-core');
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Create Handler
@@ -48,7 +49,7 @@ const CreateHandler = function(type, callback)
 );
                     Log.error(err);
 
-                    const speach = `An interal error has occured.`;
+                    const speach = tFor(handlerInput, 'ERROR_GENERIC');
                     return responseBuilder.speak(speach).getResponse();
                 }
             }
@@ -109,7 +110,7 @@ const CreateIntent = function(intent, callback)
                     Log.error(`Error in intent handle("${intent}"):`);
                     Log.error(err);
 
-                    const speach = `An interal error has occured, request not processed.`;
+                    const speach = tFor(handlerInput, 'ERROR_GENERIC');
                     return responseBuilder.speak(speach).getResponse();
                 }
             }

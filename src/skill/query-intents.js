@@ -21,10 +21,10 @@ const WhatThisIntent = CreateIntent(
         
         const item = playlist.getCurrentItem();
 
-        var speach = "There is currently no song playing.";
+        var speach = tFor(handlerInput, 'NO_SONG_PLAYING');
 
         if (item)
-            speach = `The current song is ${item.Item.Name} by ${item.Item.AlbumArtist}`;
+            speach = tFor(handlerInput, 'CURRENT_SONG', { song: item.Item.Name, artist: item.Item.AlbumArtist });
 
         Log.info(speach);
         

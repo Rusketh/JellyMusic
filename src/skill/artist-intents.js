@@ -8,6 +8,7 @@ const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Process Intent: Get Arist Intent
@@ -24,7 +25,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.artistname || !slots.artistname.value)
     {
-        const speach = `I didn't catch the artist name.`;
+        const speach = tFor(handlerInput, 'MISSING_ARTIST_NAME');
         return [{status: false, speach}];
     }
 
@@ -36,7 +37,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         
     if (!artists.status || !artists.items[0])
     {
-        const speach = `I didn't find an artist called ${slots.artistname.value}.`;
+        const speach = tFor(handlerInput, 'ARTIST_NOT_FOUND', { artist: slots.artistname.value });
         return [{status: false, speach}];
     }
 
@@ -48,7 +49,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music by the artist ${slots.artistname.value}.`;
+        const speach = tFor(handlerInput, 'NO_MUSIC_BY_ARTIST', { artist: slots.artistname.value });
         return [{status: false, speach}];
     }
 
@@ -85,7 +86,7 @@ const PlayArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'PLAYING_ARTIST', { artist: artist.Name, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -125,7 +126,7 @@ const ShuffleArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'SHUFFLE_ARTIST', { artist: artist.Name, skill: CONFIG.skill.name });
         
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -169,7 +170,7 @@ const QueueArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${count} songs by artist ${artist.Name}, to the queue.`;
+        var speach = tFor(handlerInput, 'ADDED_ARTIST_SONGS', { count, artist: artist.Name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },

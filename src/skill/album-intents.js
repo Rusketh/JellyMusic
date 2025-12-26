@@ -8,6 +8,7 @@ const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
 const Log = require('../logger.js');
+const { tFor } = require('./i18n');
 
 /*********************************************************************************
  * Process Intent: Get Album by name & Artist
@@ -24,8 +25,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.albumname || !slots.albumname.value)
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't catch the album name. ${speach1}`;
+        const speach1 = tFor(handlerInput, 'MISSING_ALBUM_NAME', { action });
+        const speach2 = speach1;
         return [{status: false, speach1, speach2}];
     }
 
@@ -37,7 +38,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     
     if (!albums.status || !albums.items[0])
     {
-        const speach = `I didn't find an album called ${slots.albumname.value}`;
+        const speach = tFor(handlerInput, 'ALBUM_NOT_FOUND', { album: slots.albumname.value });
         return [{status: false, speach}];
     }
 
@@ -52,7 +53,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         
         if (!artists.status || !artists.items[0])
         {
-            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
+            const speach = tFor(handlerInput, 'ALBUM_ARTIST_NOT_FOUND', { artist: slots.artistname.value });
             return [{status: false, speach}];
         }
 
@@ -80,13 +81,13 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
                 {
                     const suggestion = `${album.Name} by ${album.AlbumArtist}`;
 
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
+                    const speach = tFor(handlerInput, 'ALBUM_SUGGESTION', { album: slots.albumname.value, artist: artist.name || slots.artistname.value, suggestion });
                     
                     return [{status: false, speach}];
                 }
                 else
                 {
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    const speach = tFor(handlerInput, 'ALBUM_NOT_FOUND_BY_ARTIST', { album: slots.albumname.value, artist: artist.name || slots.artistname.value });
                     return [{status: false, speach}];
                 }
             }
@@ -99,7 +100,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
+        const speach = tFor(handlerInput, 'NO_MUSIC_IN_ALBUM', { album: slots.albumname.value });
         return [{status: false, speach1, speach2}];
     }
 
@@ -136,9 +137,9 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'PLAYING_ALBUM', { album: album.Name, skill: CONFIG.skill.name });
         
-        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (album.AlbumArtist) speach = tFor(handlerInput, 'PLAYING_ALBUM_BY_ARTIST', { album: album.Name, artist: album.AlbumArtist, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -178,9 +179,9 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
+        var speach = tFor(handlerInput, 'SHUFFLE_ALBUM', { album: album.Name, skill: CONFIG.skill.name });
         
-        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (album.AlbumArtist) speach = tFor(handlerInput, 'SHUFFLE_ALBUM_BY_ARTIST', { album: album.Name, artist: album.AlbumArtist, skill: CONFIG.skill.name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -224,9 +225,9 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Adding album ${album.Name}, to the queue.`;
+        var speach = tFor(handlerInput, 'ADDED_ALBUM_TO_QUEUE', { album: album.Name });
         
-        if (album.AlbumArtist) speach = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        if (album.AlbumArtist) speach = tFor(handlerInput, 'ADDED_ALBUM_TO_QUEUE', { album: album.Name });
 
         return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
     },

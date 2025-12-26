@@ -4,6 +4,7 @@ const Alexa = require('ask-sdk-core');
 
 const fs = require("fs");
 const Log = require('../logger.js');
+const { tFor } = require('../skill/i18n');
 
 /*********************************************************************************
  * Device Playlists
@@ -76,7 +77,7 @@ const onQueueFinished = function(handlerInput, speak)
 
     if (speak)
     {
-        const speach = "There are no more songs left in the queue.";
+        const speach = tFor(handlerInput, 'QUEUE_FINISHED');
         
         return responseBuilder.speak(speach).getResponse();
     }
