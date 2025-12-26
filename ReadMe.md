@@ -1,5 +1,7 @@
 # Jelly Music
 
+[![demo](https://img.shields.io/discord/1454115231814127626?logo=discord)](https://discord.gg/CacbSg2Mza)
+
 ## What is Jelly Music?
 
 Jelly Music is a **self-hosted Alexa Skill** designed for your Jellyfin server. It allows for you to stream and play music on your Alexa devices using voice commands like:
