@@ -49,8 +49,13 @@ const Request = async function(endpoint, params, ...args)
 
     Log.debug(`[Jellyfin] Response ${response.status} (${Date.now() - started}ms) for`, url.pathname);
 
-    if (!response.ok)
-        return {status: false, error: await response.text()};
+    if (!response.ok) {
+        // capture body safely for diagnostics, but avoid throwing
+        let body;
+        try { body = await response.text(); } catch (e) { body = '<failed-to-read-body>'; }
+        Log.warn(`[Jellyfin] Non-OK response ${response.status} for ${url.pathname}:`, body);
+        return {status: false, statusCode: response.status, error: body};
+    }
 
     var result = await response.json();
 
@@ -111,34 +116,31 @@ Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"
 
 
 /*********************************************************************************
- * Search Function
+ * Search Function (server-side)
  */
+const Search = async function (api, field, query, ...params) {
+    if (!query || !String(query).trim()) {
+        return { status: false, error: "Empty query" };
+    }
 
-const Search = async function(api, field, query, ...perams)
-{
-    const result = await api(...perams);
+    // Ask Jellyfin to do the search; do NOT fetch the entire library.
+    const result = await api(
+        {
+            SearchTerm: String(query).trim(),
+            Limit: 25,
+            Recursive: true,
+        },
+        ...params
+    );
 
     if (!result.status) return result;
 
-    query = query.toLowerCase();
-
-    const collator = new Intl.Collator(undefined, {sensitivity: "accent", usage: "search"});
-
-    result.items = result.items.filter((item) => {
-        const value = item[field];
-
-        if (value == null) return false;
-
-        if (typeof value === 'string')
-            return collator.compare(value.toLowerCase(), query) === 0 || value.toLowerCase().includes(query);
-        
-        if (value instanceof Array)
-            for(v of value)
-                if (collator.compare(v.toLowerCase(), query) === 0 || v.toLowerCase().includes(query)) return true;
-
-        return false;
+    // Optional: tighten results client-side if you want (case-insensitive contains on 'field')
+    const q = String(query).toLowerCase();
+    result.items = (result.items || []).filter(it => {
+        const v = (it && it[field]) ? String(it[field]).toLowerCase() : "";
+        return v.includes(q);
     });
-
 
     return result;
 };

@@ -54,12 +54,12 @@ try
 {   
     if (fs.existsSync(CONFIG_FILE))
     {
-        Log.info("Log.info(`Logger initialized (level=${Log.level})`);
-Loading CONFIG File");
+        Log.info(`Logger initialized (level=${Log.level})`);
+        Log.info("Loading CONFIG File");
         
         CONFIG = JSON.parse(fs.readFileSync(CONFIG_FILE));
         
-        Log.info("CONFIG File loaded sucessfully.");
+        Log.info("CONFIG File loaded successfully.");
     }
     else
     {

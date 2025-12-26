@@ -134,14 +134,22 @@ const CreateQueueIntent = function(intent, action, processor, responder, buildQu
 
             if (!result.status)
             {
+                // Log processor failure and what speech we will send back (if any)
+                try { Log.info(`[Intent:${intent}] Processor returned failure`, result); } catch (e) { }
+
                 var {speach, prompt} = result;
                 
-                if (speach && prompt)
+                if (speach && prompt) {
+                    try { Log.info(`[Intent:${intent}] Responding with speach & prompt`, { speach, prompt }); } catch(e){}
                     return responseBuilder.speak(speach).reprompt(prompt).getResponse();
+                }
 
-                if (speach)
+                if (speach) {
+                    try { Log.info(`[Intent:${intent}] Responding with speach`, speach); } catch(e){}
                     return responseBuilder.speak(speach).getResponse();
+                }
                 
+                try { Log.info(`[Intent:${intent}] Processor returned false with no speach`); } catch(e){}
                 return responseBuilder.getResponse();
             }
 
