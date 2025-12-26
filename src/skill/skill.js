@@ -64,6 +64,7 @@ const skill = Alexa.SkillBuilders.custom()
         ControlHandlers.PauseButtonHandler,
         ControlHandlers.NextButtonHandler,
         ControlHandlers.PreviousButtonHandler,
+        ControlHandlers.SessionEndedHandler,
 
         ControlIntents.StopIntent,
         ControlIntents.CancelIntent,

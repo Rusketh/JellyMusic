@@ -110,6 +110,18 @@ const ExceptionEncounteredHandler = CreateHandler(
 );
 
 /*********************************************************************************
+ * Session Ended
+ *
+ * Alexa sends this request when the session is ending (user exits, timeout,
+ * or after certain AudioPlayer flows). These requests do not require speech.
+ * Returning an empty response prevents "Unable to find a suitable request handler".
+ */
+const SessionEndedHandler = CreateHandler(
+    "SessionEndedRequest",
+    async (handlerInput) => handlerInput.responseBuilder.getResponse()
+);
+
+/*********************************************************************************
  * Exports
  */
 
@@ -123,5 +135,6 @@ module.exports = {
     PlayButtonHandler,
     PauseButtonHandler,
     NextButtonHandler,
+    SessionEndedHandler,
     PreviousButtonHandler
 };
