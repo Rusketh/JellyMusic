@@ -313,7 +313,7 @@
                     "slots": [
                         {
                             "name": "devicename",
-                            "type": "PLAYBACK_DEVICE"
+                            "type": "AMAZON.SearchQuery"
                         }
                     ],
                     "samples": [
@@ -337,31 +337,6 @@
                     "samples": [
                         "previous episode",
                         "play previous episode"
-                    ]
-                }
-            ],
-            "types": [
-                {
-                    "name": "PLAYBACK_DEVICE",
-                    "values": [
-                        {
-                            "name": {
-                                "value": "Fire TV Salon",
-                                "synonyms": [
-                                    "living room tv",
-                                    "living room"
-                                ]
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "Samsung TV Dormitorio",
-                                "synonyms": [
-                                    "bedroom tv",
-                                    "bedroom"
-                                ]
-                            }
-                        }
                     ]
                 }
             ]
