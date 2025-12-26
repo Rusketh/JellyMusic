@@ -321,33 +321,30 @@
                         "pon en cola {artistname}"
                     ]
                 },
-
                 {
                     "name": "PlayMovieIntent",
                     "slots": [
-                        { "name": "moviename", "type": "AMAZON.SearchQuery" },
-                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                        {
+                            "name": "moviename",
+                            "type": "AMAZON.SearchQuery"
+                        }
                     ],
                     "samples": [
-                        "reproducir la película {moviename} en {devicename}",
-                        "ver {moviename} en {devicename}",
-                        "reproducir la película {moviename}"
+                        "reproducir la película {moviename}",
+                        "ver {moviename}"
                     ]
                 },
                 {
                     "name": "PlaySeriesIntent",
                     "slots": [
-                        { "name": "seriesname", "type": "AMAZON.SearchQuery" },
-                        { "name": "season", "type": "AMAZON.NUMBER" },
-                        { "name": "episode", "type": "AMAZON.NUMBER" },
-                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                        {
+                            "name": "seriesname",
+                            "type": "AMAZON.SearchQuery"
+                        }
                     ],
                     "samples": [
-                        "reproducir la serie {seriesname} en {devicename}",
-                        "reproducir {seriesname} en {devicename}",
-                        "reproducir temporada {season} episodio {episode} de {seriesname} en {devicename}",
-                        "reproducir temporada {season} de {seriesname} en {devicename}",
-                        "reproducir la serie {seriesname}"
+                        "reproducir la serie {seriesname}",
+                        "reproducir {seriesname}"
                     ]
                 },
                 {
@@ -358,6 +355,37 @@
                         "qué dispositivos hay",
                         "qué dispositivos están disponibles"
                     ]
+                },
+                {
+                    "name": "ChangePlaybackDeviceIntent",
+                    "slots": [
+                        {
+                            "name": "devicename",
+                            "type": "PLAYBACK_DEVICE"
+                        }
+                    ],
+                    "samples": [
+                        "cambia al {devicename}",
+                        "usar {devicename}",
+                        "cambiar de dispositivo"
+                    ]
+                },
+                {
+                    "name": "NextEpisodeIntent",
+                    "slots": [],
+                    "samples": [
+                        "siguiente episodio",
+                        "pon el siguiente episodio",
+                        "continuar"
+                    ]
+                },
+                {
+                    "name": "PreviousEpisodeIntent",
+                    "slots": [],
+                    "samples": [
+                        "episodio anterior",
+                        "pon el episodio anterior"
+                    ]
                 }
             ],
             "types": [
@@ -367,13 +395,21 @@
                         {
                             "name": {
                                 "value": "Fire TV Salon",
-                                "synonyms": ["tele del salón", "tv del salón", "salón"]
+                                "synonyms": [
+                                    "tele del salón",
+                                    "tv del salón",
+                                    "salón"
+                                ]
                             }
                         },
                         {
                             "name": {
                                 "value": "Samsung TV Dormitorio",
-                                "synonyms": ["tele del dormitorio", "tv del cuarto", "dormitorio"]
+                                "synonyms": [
+                                    "tele del dormitorio",
+                                    "tv del cuarto",
+                                    "dormitorio"
+                                ]
                             }
                         }
                     ]

@@ -256,7 +256,7 @@
                         "what is playing",
                         "what is this",
                         "what is the name of this song",
-                        "what is this song"
+                        "What is this song"
                     ]
                 },
                 {
@@ -273,33 +273,30 @@
                         "queue songs by {artistname}"
                     ]
                 },
-
                 {
                     "name": "PlayMovieIntent",
                     "slots": [
-                        { "name": "moviename", "type": "AMAZON.SearchQuery" },
-                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                        {
+                            "name": "moviename",
+                            "type": "AMAZON.SearchQuery"
+                        }
                     ],
                     "samples": [
-                        "play the movie {moviename} on {devicename}",
-                        "watch {moviename} on {devicename}",
-                        "play the movie {moviename}"
+                        "play the movie {moviename}",
+                        "watch {moviename}"
                     ]
                 },
                 {
                     "name": "PlaySeriesIntent",
                     "slots": [
-                        { "name": "seriesname", "type": "AMAZON.SearchQuery" },
-                        { "name": "season", "type": "AMAZON.NUMBER" },
-                        { "name": "episode", "type": "AMAZON.NUMBER" },
-                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                        {
+                            "name": "seriesname",
+                            "type": "AMAZON.SearchQuery"
+                        }
                     ],
                     "samples": [
-                        "play the series {seriesname} on {devicename}",
-                        "play {seriesname} on {devicename}",
-                        "play season {season} episode {episode} of {seriesname} on {devicename}",
-                        "play season {season} of {seriesname} on {devicename}",
-                        "play the series {seriesname}"
+                        "play the series {seriesname}",
+                        "play {seriesname}"
                     ]
                 },
                 {
@@ -310,6 +307,37 @@
                         "what devices are available",
                         "where can I play video"
                     ]
+                },
+                {
+                    "name": "ChangePlaybackDeviceIntent",
+                    "slots": [
+                        {
+                            "name": "devicename",
+                            "type": "PLAYBACK_DEVICE"
+                        }
+                    ],
+                    "samples": [
+                        "switch to {devicename}",
+                        "use {devicename}",
+                        "change device"
+                    ]
+                },
+                {
+                    "name": "NextEpisodeIntent",
+                    "slots": [],
+                    "samples": [
+                        "next episode",
+                        "play next episode",
+                        "continue"
+                    ]
+                },
+                {
+                    "name": "PreviousEpisodeIntent",
+                    "slots": [],
+                    "samples": [
+                        "previous episode",
+                        "play previous episode"
+                    ]
                 }
             ],
             "types": [
@@ -319,13 +347,19 @@
                         {
                             "name": {
                                 "value": "Fire TV Salon",
-                                "synonyms": ["living room tv", "living room"]
+                                "synonyms": [
+                                    "living room tv",
+                                    "living room"
+                                ]
                             }
                         },
                         {
                             "name": {
                                 "value": "Samsung TV Dormitorio",
-                                "synonyms": ["bedroom tv", "bedroom"]
+                                "synonyms": [
+                                    "bedroom tv",
+                                    "bedroom"
+                                ]
                             }
                         }
                     ]
