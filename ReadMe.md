@@ -220,11 +220,8 @@ Once your Alexa Skill is created, you need to configure it. This might seem daun
 
 2. Navigate to **"Interfaces"** and **enable "Audio Player"**. This is crucial for audio streaming, and the skill will not function without it.
 
-  
-
 3. Grab the a preconfigured Alexa Skill JSON file in your language from here: [https://github.com/Rusketh/JellyMusic/blob/main/skill-json](https://github.com/Rusketh/JellyMusic/blob/main/skill-json)
 
-  
 
 4. Change `interactionModel.languageModel.invocationName` (line 4 in the JSON file) to the name you used for the **`SKILL_NAME` environment variable**, then save the file.
 
