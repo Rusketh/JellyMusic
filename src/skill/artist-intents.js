@@ -20,18 +20,21 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.artistname || !slots.artistname.value)
     {
-        const speach = `I didn't catch the artist name.`;
-        return [{status: false, speach}];
+        const speech = `I didn't catch the artist name.`;
+        return [{status: false, speech}];
     }
 
-    console.log(`Requesting Artist: ${slots.artistname.value}`);
+    Logger.Debug(`[Artist Request]`, `Requested Artist ${slots.artistname.value}`);
 
     const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
     if (!artists.status || !artists.items[0])
     {
-        const speach = `I didn't find an artist called ${slots.artistname.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Artist Request]`, "Artist not found.");
+
+        const speech = `I didn't find an artist called ${slots.artistname.value}.`;
+
+        return [{status: false, speech}];
     }
 
     const artist = artists.items[0];
@@ -40,8 +43,11 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music by the artist ${slots.artistname.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Artist Request]`, "No music found.");
+
+        const speech = `I didn't find an music by the artist ${slots.artistname.value}.`;
+
+        return [{status: false, speech}];
     }
 
     const then = async function(data)
@@ -77,9 +83,9 @@ const PlayArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Playing songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -117,9 +123,9 @@ const ShuffleArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Shuffling songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
         
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -161,9 +167,9 @@ const QueueArtistIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${count} songs by artist ${artist.Name}, to the queue.`;
+        var speech = `Added ${count} songs by artist ${artist.Name}, to the queue.`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

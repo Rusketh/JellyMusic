@@ -16,9 +16,9 @@ const getPlayList = function(device)
 {
     if (devices[device]) return devices[device];
 
-    console.log(`Registering new device: ${device}`);
-
     const playlist = PlayList.new(device);
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Created new device playlist.");
 
     devices[device] = playlist;
 
@@ -54,7 +54,7 @@ const onPlaybackNearlyFinished = function(handlerInput)
 
     const playlist = getPlayList(deviceID);
 
-    console.debug("Playback nearly finished!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback nearly finished!");
 
     const directive = playlist.getPlayNextDirective(handlerInput);
 
@@ -71,13 +71,13 @@ const onQueueFinished = function(handlerInput, speak)
 {
     const { responseBuilder } = handlerInput;
 
-    console.debug("Playback queue finished!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback queue finished!");
 
     if (speak)
     {
-        const speach = "There are no more songs left in the queue.";
+        const speech = "There are no more songs left in the queue.";
         
-        return responseBuilder.speak(speach).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     }
 
     return responseBuilder.getResponse();
@@ -97,14 +97,14 @@ const onPlaybackFailed = function(handlerInput)
 
     var directive = playlist.getPlayDirective(handlerInput);
 
-    console.debug("Playback failed!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback failed!");
 
     if (!directive) return responseBuilder.getResponse();
 
     if (playlist.Validate(directive, handlerInput))
         return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
         
-    console.debug("Moving to next song.");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Moving to next song.");
 
     const next = playlist.getNextItem();
 
@@ -112,7 +112,7 @@ const onPlaybackFailed = function(handlerInput)
 
     directive = next.getPlayDirective(directive, handlerInput);
 
-    if (!directive || !playlist.Validate()) return responseBuilder.getResponse();
+    if (!directive || !playlist.Validate(directive, handlerInput)) return responseBuilder.getResponse();
 
     return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
 };
@@ -131,7 +131,7 @@ const onPlaybackStarted = function(handlerInput)
 
     playlist.start();
 
-    console.debug("Playback started!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback started!");
 
     return responseBuilder.getResponse();
 };
@@ -150,7 +150,7 @@ const onPlaybackFinished = function(handlerInput)
 
     playlist.stop();
 
-    console.debug("Playback finished!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback finished!");
 
     const directive = playlist.getPlayNextDirective(handlerInput);
 
@@ -176,7 +176,7 @@ const onPlaybackStopped = function(handlerInput)
 
     playlist.stop();
 
-    console.debug("Playback stopped!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback stopped!");
 
     return responseBuilder.getResponse();
 };
@@ -195,6 +195,8 @@ const doClear = function(handlerInput)
 
     playlist.clearRemainingItems();
 
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Queue Cleared.");
+
     return responseBuilder.getResponse();
 };
 
@@ -211,6 +213,8 @@ const doPause = function(handlerInput)
     const playlist = getPlayList(deviceID);
 
     playlist.pause(requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
+    
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Paused.");
 
     return responseBuilder.getResponse();
 };
@@ -231,6 +235,8 @@ const doResume = function(handlerInput)
 
     if (!directive) return responseBuilder.getResponse();
 
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Resumed.");
+
     return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
 };
 
@@ -247,6 +253,8 @@ const doStop = function(handlerInput)
     const playlist = getPlayList(deviceID);
 
     playlist.clear();
+
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Stopped.");
 
     return responseBuilder.addAudioPlayerStopDirective().getResponse();
 };
@@ -288,9 +296,11 @@ const doPlayNext = function(handlerInput)
     const next = playlist.getNextItem();
 
     if (!next || !playlist.nextItem())
-        return onQueueFinished(handlerInput, true); //responseBuilder.getResponse();
+        return onQueueFinished(handlerInput, true);
 
     const directive = next.getPlayDirective();
+
+    Logger.Info(`[Device ${playlist.Id}]`, "Playing Next Item.");
 
     return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
 };
@@ -313,6 +323,8 @@ const doPlayPrevious = function(handlerInput)
         return responseBuilder.getResponse();
 
     const directive = previous.getPlayDirective();
+
+    Logger.Info(`[Device ${playlist.Id}]`, "Playing Previous Item.");
 
     return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
 };

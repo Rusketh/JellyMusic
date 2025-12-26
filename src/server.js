@@ -12,4 +12,4 @@ app.post('/', adapter.getRequestHandlers());
 
 app.get('/', (req, res) => { res.write("Server is running!"); res.send(); } );
 
-app.listen(CONFIG.server.port, () => console.log(`Listening on port: ${CONFIG.server.port}`));
+app.listen(CONFIG.server.port, () => Logger.Debug(`Listening on port: ${CONFIG.server.port}`));

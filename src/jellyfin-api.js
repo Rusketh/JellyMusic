@@ -1,3 +1,5 @@
+const fuzzball = require('fuzzball');
+
 /*********************************************************************************
  * Request Items from API
  *      https://api.jellyfin.org/
@@ -5,7 +7,7 @@
 
 const Request = async function(endpoint, params, ...args)
 {
-    const url = new URL(endpoint, CONFIG.jellyfin.host);
+    const url = new URL(endpoint, CONFIG.jellyfin.local);
     
     if (params)
     {
@@ -15,7 +17,9 @@ const Request = async function(endpoint, params, ...args)
         {
             const value = params[key];
 
-            if (value instanceof Array)
+            if (value == null)
+                continue;
+            else if (value instanceof Array)
                 value.forEach(item => url.searchParams.append(key, String(item)));
             else
                 url.searchParams.append(key, String(value));
@@ -36,34 +40,18 @@ const Request = async function(endpoint, params, ...args)
     );
 
     if (!response.ok)
+    {
+        Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}).`);
+        
+        //TODO: Trace Error Message?
+        
         return {status: false, error: await response.text()};
+    }
 
     var result = await response.json();
     
     return {status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
 };
-
-/*********************************************************************************
- * Paged Items.
- * Returns the first page and process a function for all pages.
- */
-
-/*const PagedItems = async function(callback, api, limit, ...args)
-{
-    const result = await api(...args, {limit})
-
-    if (!result.status) return result;
-
-    if (callback)
-    {
-        callback(res);
-
-        for (let i = result.index; i < result.count; i += limit)
-            api(...args, {limit, startIndex: i}).then(callback);
-    };
-
-    return result;
-};*/
 
 /*********************************************************************************
  * Request Artists
@@ -82,11 +70,14 @@ Artists.AlbumArtists = async (...params) => await Request("/Artists/AlbumArtists
 const Items = async (...params) => await Request("/Items", { Recursive:true }, ...params);
 
 Items.Artists = Artists;
-Items.Music = async (...params) => await Items({includeItemTypes: "Audio"}, ...params);
-Items.Albums = async (...params) => await Items({includeItemTypes: "MusicAlbum"}, ...params);
-Items.MusicGenres = async (...params) => await Items({includeItemTypes: "MusicGenre"}, ...params);
-Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"}, ...params);
 
+Items.Music = async (...params) => await Items({includeItemTypes: "Audio"}, ...params);
+
+Items.Albums = async (...params) => await Items({includeItemTypes: "MusicAlbum"}, ...params);
+
+Items.MusicGenres = async (...params) => await Request("/MusicGenres", ...params);
+
+Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"}, ...params);
 
 /*********************************************************************************
  * Search Function
@@ -122,10 +113,41 @@ const Search = async function(api, field, query, ...perams)
 };
 
 Items.Music.Search = async (query, ...params) => await Search(Items.Music, "Name", query, ...params);
+
 Items.Albums.Search = async (query, ...params) => await Search(Items.Albums, "Name", query, ...params);
+
 Items.Artists.Search = async (query, ...params) => await Search(Items.Artists, "Name", query, ...params);
+
 Items.MusicGenres.Search = async (query, ...params) => await Search(Items.MusicGenres, "Name", query, ...params);
+
 Items.Playlists.Search = async (query, ...params) => await Search(Items.Playlists, "Name", query, ...params);
+
+/*********************************************************************************
+ * Fuzzy Search Function: Warning this is SLOW!
+ */
+
+const FuzzySearch = async function(api, field, query, ...perams)
+{
+    const result = await api(perams);
+
+    if (!result.status) return result;
+
+    result.items.forEach(item => item.score = fuzzball.token_sort_ratio(query, item[field]));
+    result.items = result.items.filter((item) => item.score > 60);
+    result.items.sort((a, b) => b.score - a.score);
+
+    return result;
+};
+
+Items.Music.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Music, "Name", query, ...params);
+
+Items.Albums.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Albums, "Name", query, ...params);
+
+Items.Artists.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Artists, "Name", query, ...params);
+
+Items.MusicGenres.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.MusicGenres, "Name", query, ...params);
+
+Items.Playlists.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Playlists, "Name", query, ...params);
 
 /*********************************************************************************
  * Find Albums
@@ -133,7 +155,7 @@ Items.Playlists.Search = async (query, ...params) => await Search(Items.Playlist
 
 Items.Albums.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query);
+    const result = await Items.MusicGenres.FuzzySearch(query);
 
     if (!result.status) return result;
 
@@ -167,7 +189,7 @@ Items.Albums.ByArist = async function(query, ...params)
 
 Items.Artists.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query);
+    const result = await Items.MusicGenres.FuzzySearch(query);
 
     if (!result.status) return result;
 
@@ -186,7 +208,7 @@ Items.Artists.ByGenre = async function(query, ...params)
 
 Items.Music.ByGenre = async function(query, ...params)
 {
-    const result = await Items.MusicGenres.Search(query);
+    const result = await Items.MusicGenres.FuzzySearch(query);
 
     if (!result.status) return result;
 
@@ -229,33 +251,6 @@ Items.Music.ByAlbum = async function(query, ...params)
     return result2;
 };
 
-/*********************************************************************************
- * Find Songs by playlist
- */
-
-/*Items.Music.ByPlayList = async function(query, ...params)
-{
-    const result = await Items.Playlists.Search(query, {fields: "ItemIds"});
-
-    if (!result.status) return result;
-
-    const items = { };
-
-    for(item of result.items)
-    {
-        const result2 = await Items({parentId: item.Id}, ...params);
-
-        if (!result2.status) continue;
-
-        result2.items.forEach(item => items[item.Id] = item);
-    }
-
-    result.playlists = result.items;
-
-    result.items = Object.values(items);
-
-    return result;
-};*/
 
 /*********************************************************************************
  * Exports

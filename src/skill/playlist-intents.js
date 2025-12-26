@@ -20,16 +20,16 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.playlistname || !slots.playlistname.value)
     {
-        const speach = `I didn't catch the playlist name.`;
-        return [{status: false, speach}];
+        const speech = `I didn't catch the playlist name.`;
+        return [{status: false, speech}];
     }
 
     const playlists = await JellyFin.Playlists.Search(slots.playlistname.value);
         
     if (!playlists.status || !playlists.items[0])
     {
-        const speach = `I didn't find a playlist called ${slots.playlistname.value}.`;
-        return [{status: false, speach}];
+        const speech = `I didn't find a playlist called ${slots.playlistname.value}.`;
+        return [{status: false, speech}];
     }
 
     const playlist = playlists.items[0];
@@ -38,8 +38,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `The playlist ${slots.artistname.value} is empty.`;
-        return [{status: false, speach}];
+        const speech = `The playlist ${slots.artistname.value} is empty.`;
+        return [{status: false, speech}];
     }
 
     const then = async function(data)
@@ -75,9 +75,9 @@ const PlayPlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speach = `Playing songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Playing songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -115,9 +115,9 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speach = `Shuffling songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Shuffling songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
         
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -159,9 +159,9 @@ const QueuePlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speach = `Added ${count} songs from playlist ${playlist.Name}, to the queue.`;
+        var speech = `Added ${count} songs from playlist ${playlist.Name}, to the queue.`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

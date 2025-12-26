@@ -20,18 +20,21 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.genre || !slots.genre.value)
     {
-        const speach = `I didn't catch the genre of music.`;
-        return [{status: false, speach}];
+        const speech = `I didn't catch the genre of music.`;
+        return [{status: false, speech}];
     }
 
-    console.log(`Requesting Genre: ${slots.genre.value}`);
+    Logger.Debug(`[Genre Request]`, `Requesting genre ${slots.genre.value}.`);
 
     const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
         
     if (!genres.status || !genres.items[0])
     {
-        const speach = `I didn't find a genre called ${slots.genre.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Genre Request]`, `Genre not found.`);
+
+        const speech = `I didn't find a genre called ${slots.genre.value}.`;
+
+        return [{status: false, speech}];
     }
     const genreIds = genres.items.map(item => item.Id).join("|");
 
@@ -39,8 +42,11 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     
     if (!songs.status || !songs.items[0])
     {
-        const speach = `No songs of ${slots.genre.value} where found.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Genre Request]`, `No music found.`);
+
+        const speech = `No songs of ${slots.genre.value} where found.`;
+
+        return [{status: false, speech}];
     }
 
     const then = async function(data)
@@ -76,12 +82,12 @@ const PlayGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        var speech = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
         
         if (genres.length > 1)
-            var speach = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -119,12 +125,12 @@ const ShuffleGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        var speech = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
 
         if (genres.length > 1)
-            var speach = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -166,12 +172,12 @@ const QueueGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
+        var speech = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
 
         if (genres.length > 1)
-            var speach = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
+            var speech = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
     
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

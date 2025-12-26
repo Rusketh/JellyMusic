@@ -34,15 +34,15 @@ const ErrorHandler = {
             error = requestEnvelope.request.error;
 
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-        console.error(`Error handled: ${type}`);
+        Logger.Error(`Error handled: ${type}`);
 
         if (type == "IntentRequest")
         {
             const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
-            console.error(`Intent: ${intent}`);
+            Logger.Error(`Intent: ${intent}`);
         }
 
-        console.error(error);
+        Logger.Error(error);
 
         return responseBuilder.getResponse();
     }
@@ -64,6 +64,7 @@ const skill = Alexa.SkillBuilders.custom()
         ControlHandlers.PauseButtonHandler,
         ControlHandlers.NextButtonHandler,
         ControlHandlers.PreviousButtonHandler,
+        ControlHandlers.SessionEndedHandler,
 
         ControlIntents.StopIntent,
         ControlIntents.CancelIntent,

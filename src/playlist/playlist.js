@@ -1,8 +1,12 @@
+const crypto = require("node:crypto");
+
 const PlayListItem = require("./item.js");
 
 /*********************************************************************************
  * Playlist Item
  */
+
+var id = 0;
 
 const PlayList = { };
 
@@ -12,7 +16,8 @@ PlayList.new = function(device)
         Device: device,
         Dirty: false,
         Position: 0,
-        Queue: [ ]
+        Queue: [ ],
+        Id: id++
     }, PlayList);
 };
 
@@ -189,25 +194,19 @@ PlayList.getPlayPreviousDirective = function(handlerInput)
 PlayList.Validate = function(directive, {attributesManager})
 {
     var token = directive[2];
-    /*let sessionAttributes = attributesManager.getSessionAttributes();
-
-    if (sessionAttributes.playbackToken == token) return false;
-
-    sessionAttributes.playbackToken = token;
-
-    attributesManager.setSessionAttributes(sessionAttributes);*/
     
+    if (!token) return true;
+
     if (this.playbackToken && this.playbackToken == token)
     {
-        console.log(`Repeating token: ${token}`);
+        Logger.Debug(`[Playlist ${this.Id}]`, "Existing playback token rejected.");
         return false;
     }
 
-    console.log(`None repeating token: ${token}`);
+    Logger.Debug(`[Playlist ${this.Id}]`, "New playback token consumed.");
 
     this.playbackToken = token;
     
-
     return true;
 }
 
@@ -221,11 +220,11 @@ PlayList.nextItem = function()
 
     if (index >= this.Queue.length - 1)
     {
-        console.debug("Reached end of queue!");
+        Logger.Debug(`[Playlist ${this.Id}]`, "Reached end of queue!");
         return false;
     }
 
-    console.debug("Playlist moved up by 1.");
+    Logger.Debug(`[Playlist ${this.Id}]`,"Moving to next item in queue.");
 
     this.Position = index;
 
@@ -240,11 +239,11 @@ PlayList.previousItem = function()
 
     if (index < 0)
     {
-        console.debug("Reached start of queue!");
+        Logger.Debug(`[Playlist ${this.Id}]`,"Reached start of queue!");
         return false;
     }
 
-    console.debug("Playlist moved down by 1.");
+    Logger.Debug(`[Playlist ${this.Id}]`,"Moving to previous item in queue.");
 
     this.Position = index;
 

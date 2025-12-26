@@ -25,14 +25,17 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         return [{status: false, speach1, speach2}];
     }
 
-    console.log(`Requesting Album: ${slots.albumname.value}`);
+    Logger.Debug(`[Album Request]`, `Requested album ${slots.albumname.value}`);
 
     const albums = await JellyFin.Albums.Search(slots.albumname.value);
     
     if (!albums.status || !albums.items[0])
     {
-        const speach = `I didn't find an album called ${slots.albumname.value}`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Album Request]`, "No album found.");
+
+        const speech = `I didn't find an album called ${slots.albumname.value}`;
+
+        return [{status: false, speech}];
     }
 
     var artist = undefined;
@@ -40,14 +43,17 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (slots.artistname && slots.artistname.value)
     {
-        console.log(`Requesting Artist for Album: ${slots.artistname.value}`);
+        Logger.Debug(`[Album Request]`, `Requested Artist ${slots.artistname.value}`);
 
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
         if (!artists.status || !artists.items[0])
         {
-            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
-            return [{status: false, speach}];
+            Logger.Debug(`[Album Request]`, "No artist found.");
+
+            const speech = `I didn't find an artist called ${slots.artistname.value}.`;
+
+            return [{status: false, speech}];
         }
 
         artist = artists.items[0];
@@ -72,16 +78,22 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
                 
                 if (album && album.AlbumArtist)
                 {
+
                     const suggestion = `${album.Name} by ${album.AlbumArtist}`;
 
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
+                    Logger.Debug(`[Album Request]`, `Returning suggestion ${suggestion}`);
+
+                    const speech = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
                     
-                    return [{status: false, speach}];
+                    return [{status: false, speech}];
                 }
                 else
                 {
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
-                    return [{status: false, speach}];
+
+                    Logger.Debug(`[Album Request]`, "Album not found.");
+
+                    const speech = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    return [{status: false, speech}];
                 }
             }
         }
@@ -91,7 +103,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
+        const speech = `I didn't find an music in the album ${slots.albumname.value}.`;
         return [{status: false, speach1, speach2}];
     }
 
@@ -128,11 +140,11 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
         
-        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (album.AlbumArtist) speech = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -170,11 +182,11 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
+        var speech = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
         
-        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (album.AlbumArtist) speech = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -216,11 +228,11 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speach = `Adding album ${album.Name}, to the queue.`;
+        var speech = `Adding album ${album.Name}, to the queue.`;
         
-        if (album.AlbumArtist) speach = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        if (album.AlbumArtist) speech = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

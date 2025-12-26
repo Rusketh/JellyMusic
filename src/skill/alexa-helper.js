@@ -17,8 +17,8 @@ const CreateHandler = function(type, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in handler canHandle("${type}"):`);
-                    console.error(err);
+                    Logger.Error(`Error in handler canHandle("${type}"):`);
+                    Logger.Error(err);
 
                     return false;
                 }
@@ -35,11 +35,11 @@ const CreateHandler = function(type, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in handler handle("${type}"):`);
-                    console.error(err);
+                    Logger.Error(`Error in handler handle("${type}"):`);
+                    Logger.Error(err);
 
-                    const speach = `An interal error has occured.`;
-                    return responseBuilder.speak(speach).getResponse();
+                    const speech = `An interal error has occured.`;
+                    return responseBuilder.speak(speech).getResponse();
                 }
             }
     }
@@ -63,8 +63,8 @@ const CreateIntent = function(intent, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in intent canHandle("${intent}"):`);
-                    console.error(err);
+                    Logger.Error(`Error in intent canHandle("${intent}"):`);
+                    Logger.Error(err);
 
                     return false;
                 }
@@ -81,11 +81,11 @@ const CreateIntent = function(intent, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in intent handle("${intent}"):`);
-                    console.error(err);
+                    Logger.Error(`Error in intent handle("${intent}"):`);
+                    Logger.Error(err);
 
-                    const speach = `An interal error has occured, request not processed.`;
-                    return responseBuilder.speak(speach).getResponse();
+                    const speech = `An interal error has occured, request not processed.`;
+                    return responseBuilder.speak(speech).getResponse();
                 }
             }
     }
@@ -109,13 +109,13 @@ const CreateQueueIntent = function(intent, action, processor, responder, buildQu
 
             if (!result.status)
             {
-                var {speach, prompt} = result;
+                var {speech, prompt} = result;
                 
-                if (speach && prompt)
-                    return responseBuilder.speak(speach).reprompt(prompt).getResponse();
+                if (speech && prompt)
+                    return responseBuilder.speak(speech).reprompt(prompt).getResponse();
 
-                if (speach)
-                    return responseBuilder.speak(speach).getResponse();
+                if (speech)
+                    return responseBuilder.speak(speech).getResponse();
                 
                 return responseBuilder.getResponse();
             }
