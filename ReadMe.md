@@ -1,7 +1,7 @@
 
 # Jelly Music
 
-  
+[![demo](https://img.shields.io/discord/1454115231814127626?logo=discord)](https://discord.gg/CacbSg2Mza)
 
 ## What is Jelly Music?
 
@@ -222,7 +222,7 @@ Once your Alexa Skill is created, you need to configure it. This might seem daun
 
   
 
-3. Grab the preconfigured Alexa Skill JSON file from here: [https://github.com/Rusketh/JellyMusic/blob/main/src/skill/skill.json](https://github.com/Rusketh/JellyMusic/blob/main/src/skill/skill.json)
+3. Grab the a preconfigured Alexa Skill JSON file in your language from here: [https://github.com/Rusketh/JellyMusic/blob/main/skill-json](https://github.com/Rusketh/JellyMusic/blob/main/skill-json)
 
   
 
