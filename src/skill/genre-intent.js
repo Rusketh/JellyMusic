@@ -31,16 +31,30 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     Log.info(`Requesting Genre: ${slots.genre.value}`);
 
-    const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
+    // Resolve best matching genre id using the dedicated /MusicGenres helper (cached)
+    const resolvedId = await JellyFin.MusicGenres.ResolveIdByName(slots.genre.value);
 
-    try { Log.info('[Search] Genre results:', Log.summarizeItems(genres.items, 8)); Log.trace('[Search] Full genre search result:', genres); } catch (e) { }
-        
-    if (!genres.status || !genres.items[0])
+    if (!resolvedId)
     {
         const speach = tFor(handlerInput, 'GENRE_NOT_FOUND', { genre: slots.genre.value });
         return [{status: false, speach}];
     }
-    const genreIds = genres.items.map(item => item.Id).join("|");
+
+    Log.info(`[Genres] Resolved '${slots.genre.value}' -> ${resolvedId}`);
+
+    // Try to fetch genre metadata for a friendly name to speak back to the user
+    let genres = { items: [] };
+    try {
+        const search = await JellyFin.MusicGenres.Search(slots.genre.value);
+        try { Log.info('[Search] Genre results:', Log.summarizeItems(search.items, 8)); Log.trace('[Search] Full genre search result:', search); } catch (e) { }
+        if (search.status && search.items && search.items.length)
+            genres.items = [ search.items.find(it => it.Id === resolvedId) || search.items[0] ];
+    } catch (e) { }
+
+    // Fallback to the raw slot value if we couldn't find metadata
+    if (!genres.items.length) genres.items = [{ Id: resolvedId, Name: slots.genre.value }];
+
+    const genreIds = resolvedId;
 
     const songs = await JellyFin.Music({genreIds, limit});
     

@@ -103,6 +103,135 @@ Artists.ByName = async (artist, ...params) => await Request(`/Artists/${artist}`
 Artists.AlbumArtists = async (...params) => await Request("/Artists/AlbumArtists", ...params);
 
 /*********************************************************************************
+ * Music Genres (new helper)
+ * Supports the dedicated /MusicGenres endpoint which returns an array.
+ * Implements server-side SearchTerm/Limit and a ResolveIdByName helper with caching.
+ */
+
+const MusicGenres = async function(params) {
+    const url = new URL("/MusicGenres", CONFIG.jellyfin.host);
+
+    if (params && typeof params === 'object') {
+        for (const k in params) url.searchParams.append(k, String(params[k]));
+    }
+
+    // Debug: log request
+    Log.debug('[Jellyfin] GET', Log.redactUrl(url.toString()));
+
+    const started = Date.now();
+
+    let response;
+    try {
+        response = await fetch(
+            url,
+            {
+                method: 'GET',
+                headers:
+                {
+                    Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            }
+        );
+    } catch (err) {
+        Log.error('[Jellyfin] Network error:', err);
+        return {status: false, error: String(err)};
+    }
+
+    Log.debug(`[Jellyfin] Response ${response.status} (${Date.now() - started}ms) for`, url.pathname);
+
+    if (!response.ok) {
+        let body;
+        try { body = await response.text(); } catch (e) { body = '<failed-to-read-body>'; }
+        Log.warn(`[Jellyfin] Non-OK response ${response.status} for ${url.pathname}:`, body);
+        return {status: false, statusCode: response.status, error: body};
+    }
+
+    const result = await response.json();
+
+    // Normalize result: /MusicGenres may return an array directly
+    let items = [];
+    if (Array.isArray(result)) items = result;
+    else if (Array.isArray(result.Items)) items = result.Items;
+
+    Log.trace('[Jellyfin] MusicGenres result count:', items.length);
+    Log.debug('[Jellyfin] ' + Log.summarizeItems(items, 8));
+
+    return { status: true, items, index: 0, count: items.length };
+};
+
+// Search helper using server-side SearchTerm & Limit
+MusicGenres.Search = async function(query, opts = {}) {
+    const params = Object.assign({}, opts, { SearchTerm: query });
+    if (!params.Limit) params.Limit = CONFIG.jellyfin.limit || 25;
+    return await MusicGenres(params);
+};
+
+// Simple in-memory cache for genre name -> id
+const _genreCache = { };
+const _genreCacheTtl = Number(process.env.GENRE_CACHE_TTL) || (CONFIG.jellyfin.genreCacheTtl || 30 * 60 * 1000);
+
+// Resolve best matching genre Id by name with ranking
+// Prioridad: exacto (case-insensitive) > startsWith > includes > first
+MusicGenres.ResolveIdByName = async function(name) {
+    if (!name) return null;
+
+    const key = String(name).trim().toLowerCase();
+
+    // Cache hit
+    const cached = _genreCache[key];
+    if (cached && cached.expires > Date.now()) {
+        Log.debug(`[Genres] Cache hit for '${key}' -> ${cached.id}`);
+        return cached.id;
+    }
+
+    Log.info(`[Genres] Resolving genre name: '${name}'`);
+
+    const res = await MusicGenres.Search(name);
+
+    if (!res.status) {
+        Log.warn(`[Genres] Search failed for '${name}':`, res.error || res);
+        return null;
+    }
+
+    const items = res.items || [];
+
+    Log.debug('[Genres] Search returned:', Log.summarizeItems(items, 12));
+
+    if (!items.length) {
+        Log.info(`[Genres] No genres found for '${name}'`);
+        return null;
+    }
+
+    const norm = s => String(s || '').trim().toLowerCase();
+
+    // Ranking phases
+    let selected = null;
+
+    // exact
+    for (const it of items) if (norm(it.Name) === key) { selected = it; Log.info(`[Genres] Exact match -> ${it.Name} (${it.Id})`); break; }
+
+    // startsWith
+    if (!selected) for (const it of items) if (norm(it.Name).startsWith(key)) { selected = it; Log.info(`[Genres] StartsWith match -> ${it.Name} (${it.Id})`); break; }
+
+    // includes
+    if (!selected) for (const it of items) if (norm(it.Name).includes(key)) { selected = it; Log.info(`[Genres] Includes match -> ${it.Name} (${it.Id})`); break; }
+
+    // fallback first
+    if (!selected) { selected = items[0]; Log.info(`[Genres] Fallback to first -> ${selected.Name} (${selected.Id})`); }
+
+    // Cache the selection
+    if (selected) {
+        _genreCache[key] = { id: selected.Id, expires: Date.now() + _genreCacheTtl };
+        Log.debug(`[Genres] Cached '${key}' -> ${selected.Id} (ttl=${_genreCacheTtl}ms)`);
+        return selected.Id;
+    }
+
+    return null;
+};
+
+/*********************************************************************************
  * Request Items
  */
 
@@ -112,6 +241,14 @@ Items.Artists = Artists;
 Items.Music = async (...params) => await Items({includeItemTypes: "Audio"}, ...params);
 Items.Albums = async (...params) => await Items({includeItemTypes: "MusicAlbum"}, ...params);
 Items.MusicGenres = async (...params) => await Items({includeItemTypes: "MusicGenre"}, ...params);
+
+// Ensure the high-level MusicGenres helpers are available on the exported Items namespace
+// (ResolveIdByName & Search are implemented above on the internal MusicGenres helper)
+if (typeof MusicGenres !== 'undefined') {
+    Items.MusicGenres.ResolveIdByName = MusicGenres.ResolveIdByName;
+    Items.MusicGenres.Search = MusicGenres.Search;
+}
+
 Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"}, ...params);
 
 
