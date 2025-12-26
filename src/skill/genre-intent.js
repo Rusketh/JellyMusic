@@ -20,7 +20,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.genre || !slots.genre.value)
     {
-        const speech = `I didn't catch the genre of music.`;
+        const speech = LANGUAGE.Value("GENRE_NO_NAME");
+
         return [{status: false, speech}];
     }
 
@@ -32,7 +33,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     {
         Logger.Debug(`[Genre Request]`, `Genre not found.`);
 
-        const speech = `I didn't find a genre called ${slots.genre.value}.`;
+        const speech = LANGUAGE.Parse("GENRE_NOTFOUND_BY_NAME", {genre_name: slots.genre.value});
 
         return [{status: false, speech}];
     }
@@ -44,7 +45,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     {
         Logger.Debug(`[Genre Request]`, `No music found.`);
 
-        const speech = `No songs of ${slots.genre.value} where found.`;
+        const speech = LANGUAGE.Parse("GENRE_NO_MUSIC", {genre_name: slots.genre.value});
 
         return [{status: false, speech}];
     }
@@ -82,10 +83,10 @@ const PlayGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
-        
+        var speech = LANGUAGE.Parse("GENRE_PLAYING", {genre_name: genres[0].Name});
+
         if (genres.length > 1)
-            var speech = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = LANGUAGE.Parse("GENRE_PLAYING_SIMULAR", {genre_name: genres[0].Name});
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -125,10 +126,10 @@ const ShuffleGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        var speech = LANGUAGE.Parse("GENRE_SHUFFLE", {genre_name: genres[0].Name});
 
         if (genres.length > 1)
-            var speech = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = LANGUAGE.Parse("GENRE_SHUFFLE_SIMULAR", {genre_name: genres[0].Name});
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -172,10 +173,10 @@ const QueueGenreIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
+        var speech = LANGUAGE.Parse("GENRE_QUEUED", {genre_name: genres[0].Name, count});
 
         if (genres.length > 1)
-            var speech = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
+            var speech = LANGUAGE.Parse("GENRE_QUEUED_SIMULAR", {genre_name: genres[0].Name, count});
     
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },

@@ -37,13 +37,14 @@ PlayListItem.new = function(item, token)
 
 PlayListItem.getStreamURL = function()
 {
-    const url = new URL(`/Audio/${this.Item.Id}/universal`, CONFIG.jellyfin.host);
+    const url = new URL(`/Audio/${this.Item.Id}/stream`, CONFIG.jellyfin.host);
 
     url.searchParams.append("api_key", String(CONFIG.jellyfin.key));
-    url.searchParams.append("AudioCodec", "mp3");
-    url.searchParams.append("Container", "mp3");
-    url.searchParams.append("TranscodingContainer", "mp3");
-    url.searchParams.append("MaxStreamingBitrate", "192000");
+    url.searchParams.append("container", "mp3");
+    url.searchParams.append("audioCodec", "mp3");
+    url.searchParams.append("transcodingContainer", "mp3");
+    url.searchParams.append("transcodingProtocol", "http");
+    url.searchParams.append("maxStreamingBitrate", "192000");
 
     return url.toString();
 };

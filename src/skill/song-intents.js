@@ -18,7 +18,8 @@ const Processor = async function(handlerInput, action = "play")
 
     if (!slots.songname || !slots.songname.value)
     {
-        const speech = `I didn't catch the song name.`;
+        const speech = LANGUAGE.Value("SONG_NO_NAME");
+
         return [{status: false, speech}];
     }
 
@@ -30,7 +31,7 @@ const Processor = async function(handlerInput, action = "play")
     {
         Logger.Debug(`[Music Request]`, "Music not found.");
 
-        const speech = `I didn't find a song called ${slots.songname.value}.`;
+        const speech = LANGUAGE.Parse("SONG_NOTFOUND_BY_NAME", {song_name: slots.songname.value});
 
         return [{status: false, speech}];
     }
@@ -48,7 +49,7 @@ const Processor = async function(handlerInput, action = "play")
         {
             Logger.Debug(`[Music Request]`, "No artist found.");
 
-            const speech = `I didn't find an artist called ${slots.artistname.value}.`;
+            const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", {artist_name: slots.artistname.value});
 
             return [{status: false, speech}];
         }
@@ -77,9 +78,16 @@ const Processor = async function(handlerInput, action = "play")
                 {
                     const suggestion = `${song.Name} by ${song.AlbumArtist}`;
 
-                    Logger.Debug(`[Music Request]`, `Returning suggestion ${suggestion}.`);
+                    Logger.Debug(`[Music Request]`, `Returning suggestion ${song.Name} by ${song.AlbumArtist}.`);
 
-                    const speech = `I didn't find a track called ${slots.songname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
+                    const speech = LANGUAGE.Parse("SONG_NOTFOUND_SUGGEST",
+                        {
+                            song_name: slots.songname.value,
+                            artist_name: artist.name || slots.artistname.value,
+                            suggestion_name: song.Name,
+                            suggestion_artist: song.AlbumArtist
+                        }
+                    );
                     
                     return [{status: false, speech}];
                 }
@@ -87,7 +95,12 @@ const Processor = async function(handlerInput, action = "play")
                 {
                     Logger.Debug(`[Music Request]`, "Music not found.");
 
-                    const speech = `I didn't find a track called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    const speech = LANGUAGE.Parse("SONG_NOTFOUND_BY_NAME_AND_ARTIST",
+                        {
+                            song_name: slots.songname.value,
+                            artist_name: artist.name || slots.artistname.value
+                        }
+                    );
                     
                     return [{status: false, speech}];
                 }
@@ -118,9 +131,15 @@ const PlaySongIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Playing ${items[0].Name}, on ${CONFIG.name}`;
-        
-        if (items[0].AlbumArtist) speech = `Playing ${items[0].Name} by ${items[0].AlbumArtist}, on ${CONFIG.skill.name}`;
+        var speech = LANGUAGE.Parse("SONG_PLAYING", { song_name: items[0].Name } );
+                    
+        if (items[0].AlbumArtist)
+            speech = LANGUAGE.Parse("SONG_PLAYING_BY_ARTIST",
+                {
+                    song_name: items[0].Name,
+                    song_artist: items[0].AlbumArtist
+                }
+            );
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     }
@@ -143,6 +162,18 @@ const QueueSongIntent = CreateQueueIntent(
         playlist.appendItems(items);
 
         const directive = playlist.getPlayDirective();
+
+        var speech = LANGUAGE.Parse("SONG_QUEUED", { song_name: items[0].Name } );
+                    
+        if (items[0].AlbumArtist)
+            speech = LANGUAGE.Parse("SONG_QUEUED_BY_ARTIST",
+                {
+                    song_name: items[0].Name,
+                    song_artist: items[0].AlbumArtist
+                }
+            );
+
+
 
         var speech = `Added ${items[0].Name}, to the queue.`;
         

@@ -20,9 +20,9 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.albumname || !slots.albumname.value)
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't catch the album name. ${speach1}`;
-        return [{status: false, speach1, speach2}];
+        const speech = LANGUAGE.Value("ALBUM_NO_NAME");
+
+        return [{status: false, speach1}];
     }
 
     Logger.Debug(`[Album Request]`, `Requested album ${slots.albumname.value}`);
@@ -33,7 +33,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     {
         Logger.Debug(`[Album Request]`, "No album found.");
 
-        const speech = `I didn't find an album called ${slots.albumname.value}`;
+        const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME", {album_name: slots.albumname.value});
 
         return [{status: false, speech}];
     }
@@ -51,7 +51,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         {
             Logger.Debug(`[Album Request]`, "No artist found.");
 
-            const speech = `I didn't find an artist called ${slots.artistname.value}.`;
+            const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", {artist_name: slots.artistname.value});
 
             return [{status: false, speech}];
         }
@@ -78,13 +78,17 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
                 
                 if (album && album.AlbumArtist)
                 {
+                    Logger.Debug(`[Album Request]`, `Returning suggestion ${album.Name} by ${album.AlbumArtist}`);
 
-                    const suggestion = `${album.Name} by ${album.AlbumArtist}`;
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_SUGGEST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value,
+                            suggestion_name: album.Name,
+                            suggestion_artist: album.AlbumArtist
+                        }
+                    );
 
-                    Logger.Debug(`[Album Request]`, `Returning suggestion ${suggestion}`);
-
-                    const speech = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
-                    
                     return [{status: false, speech}];
                 }
                 else
@@ -92,7 +96,13 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
                     Logger.Debug(`[Album Request]`, "Album not found.");
 
-                    const speech = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME_AND_ARTIST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value
+                        }
+                    );
+
                     return [{status: false, speech}];
                 }
             }
@@ -103,7 +113,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speech = `I didn't find an music in the album ${slots.albumname.value}.`;
+        const speech = LANGUAGE.Parse("ALBUM_NO_MUSIC", { album_name: slots.albumname.value } );
+
         return [{status: false, speach1, speach2}];
     }
 
@@ -140,9 +151,15 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speech = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        var speech = LANGUAGE.Parse("ALBUM_PLAYING", { album_name: album.Name } );
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_PLAYING_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -182,9 +199,15 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speech = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        var speech = LANGUAGE.Parse("ALBUM_SHUFFLE", { album_name: album.Name } );
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_SHUFFLE_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -228,9 +251,15 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         const directive = playlist.getPlayDirective();
 
-        var speech = `Adding album ${album.Name}, to the queue.`;
-        
-        if (album.AlbumArtist) speech = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        var speech = LANGUAGE.Parse("ALBUM_QUEUED", { album_name: album.Name } );
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_QUEUED_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },

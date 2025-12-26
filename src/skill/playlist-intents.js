@@ -20,15 +20,17 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.playlistname || !slots.playlistname.value)
     {
-        const speech = `I didn't catch the playlist name.`;
+        const speech = LANGUAGE.Value("PLAYLIST_NO_NAME");
+
         return [{status: false, speech}];
     }
 
-    const playlists = await JellyFin.Playlists.Search(slots.playlistname.value);
+    const playlists = await JellyFin.Playlists.FuzzySearch(slots.playlistname.value);
         
     if (!playlists.status || !playlists.items[0])
     {
-        const speech = `I didn't find a playlist called ${slots.playlistname.value}.`;
+        const speech = LANGUAGE.Parse("PLAYLIST_NOTFOUND_BY_NAME", {playlist_name: slots.playlistname.value});
+
         return [{status: false, speech}];
     }
 
@@ -38,7 +40,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speech = `The playlist ${slots.artistname.value} is empty.`;
+        const speech = LANGUAGE.Parse("PLAYLIST_NO_MUSIC", {playlist_name: slots.playlistname.value});
+
         return [{status: false, speech}];
     }
 
@@ -75,7 +78,7 @@ const PlayPlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speech = `Playing songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
+        const speech = LANGUAGE.Parse("PLAYLIST_PLAYING", {playlist_name: playlist.Name});
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -115,7 +118,7 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speech = `Shuffling songs from playlist ${playlist.Name}, on ${CONFIG.skill.name}`;
+        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name});
         
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },
@@ -159,7 +162,7 @@ const QueuePlaylistIntent = CreateQueueIntent(
 
         const directive = _playlist.getPlayDirective();
 
-        var speech = `Added ${count} songs from playlist ${playlist.Name}, to the queue.`;
+        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name, count});
 
         return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
     },

@@ -81,6 +81,14 @@ assert(CONFIG.log_level >= LOGLEVEL_ERROR && CONFIG.log_level <= LOGLEVEL_DEBUG,
 Logger.Info(`Logging level set to: ${CONFIG.log_level}`);
 
 /*********************************************************************************
+ * Language Setting
+ */
+
+CONFIG.language = process.env.LANGUAGE || CONFIG.language || "EN";
+
+LANGUAGE = require("./language.js");
+
+/*********************************************************************************
  * Validate JellyFin CONFIG
  */
 
