@@ -3,6 +3,7 @@ const PlayList = require("./playlist.js");
 const Alexa = require('ask-sdk-core');
 
 const fs = require("fs");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Device Playlists
@@ -16,7 +17,7 @@ const getPlayList = function(device)
 {
     if (devices[device]) return devices[device];
 
-    console.log(`Registering new device: ${device}`);
+    Log.debug(`Registering new device: ${device}`);
 
     const playlist = PlayList.new(device);
 

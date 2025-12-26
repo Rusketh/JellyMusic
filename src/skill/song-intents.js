@@ -5,6 +5,7 @@ const JellyFin = require("../jellyfin-api");
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Process Intent: Get Song Intent
@@ -16,15 +17,21 @@ const Processor = async function(handlerInput, action = "play")
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
+    Log.debug('[NLU] Intent: PlaySongIntent/QueueSongIntent');
+    Log.debug('[NLU] Raw slots:', Object.fromEntries(Object.entries(slots || {}).map(([k,v]) => [k, {value: v?.value, resolved: v?.resolutions?.resolutionsPerAuthority?.[0]?.values?.[0]?.value?.name}])));
+
     if (!slots.songname || !slots.songname.value)
     {
         const speach = `I didn't catch the song name.`;
         return [{status: false, speach}];
     }
 
-    console.log(`Requesting Song: ${slots.songname.value}`);
+    Log.info(`Requesting Song: ${slots.songname.value}`);
 
     const songs = await JellyFin.Music.Search(slots.songname.value);
+
+    // Log search results for debugging
+    try { Log.info('[Search] Song results:', Log.summarizeItems(songs.items, 8)); Log.trace('[Search] Full song search result:', songs); } catch (e) { }
 
     if (!songs.status || !songs.items[0])
     {
@@ -37,9 +44,11 @@ const Processor = async function(handlerInput, action = "play")
 
     if (slots.artistname && slots.artistname.value)
     {
-        console.log(`Requesting Artist for Song: ${slots.artistname.value}`);
+        Log.info(`Requesting Artist for Song: ${slots.artistname.value}`);
 
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
+
+        try { Log.info('[Search] Artist results:', Log.summarizeItems(artists.items, 6)); Log.trace('[Search] Full artist search result:', artists); } catch (e) { }
         
         if (!artists.status || !artists.items[0])
         {
@@ -58,7 +67,7 @@ const Processor = async function(handlerInput, action = "play")
             {
                 if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase())
                 {
-                    console.log("Found ", item.Name);
+                    Log.info("Found ", item.Name);
                     album = item;
                     break;
                 }

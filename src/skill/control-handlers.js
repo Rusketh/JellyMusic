@@ -1,6 +1,7 @@
 const { CreateHandler } = require("./alexa-helper.js");
 
 const Devices = require("../playlist/devices.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Launch App

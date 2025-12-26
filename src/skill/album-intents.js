@@ -7,6 +7,7 @@ const JellyFin = require("../jellyfin-api");
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Process Intent: Get Album by name & Artist
@@ -18,6 +19,9 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
+    Log.debug('[NLU] Intent: Album intents');
+    Log.debug('[NLU] Raw slots:', Object.fromEntries(Object.entries(slots || {}).map(([k,v]) => [k, {value: v?.value, resolved: v?.resolutions?.resolutionsPerAuthority?.[0]?.values?.[0]?.value?.name}])));
+
     if (!slots.albumname || !slots.albumname.value)
     {
         const speach1 = `Which album would you like to ${action}?`;
@@ -25,9 +29,11 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
         return [{status: false, speach1, speach2}];
     }
 
-    console.log(`Requesting Album: ${slots.albumname.value}`);
+    Log.info(`Requesting Album: ${slots.albumname.value}`);
 
     const albums = await JellyFin.Albums.Search(slots.albumname.value);
+
+    try { Log.info('[Search] Album results:', Log.summarizeItems(albums.items, 8)); Log.trace('[Search] Full album search result:', albums); } catch (e) { }
     
     if (!albums.status || !albums.items[0])
     {
@@ -40,7 +46,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (slots.artistname && slots.artistname.value)
     {
-        console.log(`Requesting Artist for Album: ${slots.artistname.value}`);
+        Log.info(`Requesting Artist for Album: ${slots.artistname.value}`);
 
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
@@ -88,6 +94,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     }
 
     const songs = await JellyFin.Music({limit, albumIds: album.Id});
+
+    try { Log.info('[Search] Songs in album:', Log.summarizeItems(songs.items, 8)); Log.trace('[Search] Full songs in album result:', songs); } catch (e) { }
 
     if (!songs.status || !songs.items[0])
     {

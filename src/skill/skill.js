@@ -19,6 +19,7 @@ const PlaylistIntents = require("./playlist-intents.js");
 const GenreIntents = require("./genre-intent.js");
 
 const QueryIntents = require("./query-intents.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Error Handler
@@ -34,15 +35,15 @@ const ErrorHandler = {
             error = requestEnvelope.request.error;
 
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-        console.error(`Error handled: ${type}`);
+        Log.error(`Error handled: ${type}`);
 
         if (type == "IntentRequest")
         {
             const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
-            console.error(`Intent: ${intent}`);
+            Log.error(`Intent: ${intent}`);
         }
 
-        console.error(error);
+        Log.error(error);
 
         return responseBuilder.getResponse();
     }
@@ -51,6 +52,24 @@ const ErrorHandler = {
 /*********************************************************************************
  * Create Skill
  */
+
+// Request/Response interceptors for logging
+const RequestLogger = {
+    process: function (handlerInput) {
+        try {
+            const env = handlerInput.requestEnvelope;
+            Log.info('[Alexa Request]', Log.requestSummary(env));
+        } catch (e) { /* swallow logging errors */ }
+    }
+};
+
+const ResponseLogger = {
+    process: function (handlerInput, response) {
+        try {
+            Log.info('[Alexa Response]', Log.responseSummary(response));
+        } catch (e) { /* swallow logging errors */ }
+    }
+};
 
 const skill = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
@@ -92,6 +111,10 @@ const skill = Alexa.SkillBuilders.custom()
         GenreIntents.QueueGenreIntent,
 
         QueryIntents.WhatThisIntent
+    ).addRequestInterceptors(
+        RequestLogger
+    ).addResponseInterceptors(
+        ResponseLogger
     ).addErrorHandlers(
         ErrorHandler
     ).withSkillId(CONFIG.skill.id).create();

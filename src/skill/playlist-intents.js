@@ -7,6 +7,7 @@ const JellyFin = require("../jellyfin-api");
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Process Intent: Get Arist Intent
@@ -17,6 +18,9 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const { requestEnvelope } = handlerInput;
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
+
+    Log.debug('[NLU] Intent: Playlist intents');
+    Log.debug('[NLU] Raw slots:', Object.fromEntries(Object.entries(slots || {}).map(([k,v]) => [k, {value: v?.value, resolved: v?.resolutions?.resolutionsPerAuthority?.[0]?.values?.[0]?.value?.name}])));
 
     if (!slots.playlistname || !slots.playlistname.value)
     {

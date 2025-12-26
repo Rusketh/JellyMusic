@@ -1,13 +1,15 @@
 const assert = require("node:assert");
 const fs = require("node:fs");
+const Log = require('./logger.js');
 
 /*********************************************************************************
  * Splash
  */
 
-console.log("=====================================================================");
-console.log("           Jelly Music");
-console.log("=====================================================================");
+Log.info("=====================================================================");
+Log.info("           Jelly Music");
+Log.info(`Current LOG_LEVEL: ${process.env.LOG_LEVEL || "INFO"}`);
+Log.info("=====================================================================");
 
 /*********************************************************************************
  * Create default CONFIG
@@ -52,20 +54,21 @@ try
 {   
     if (fs.existsSync(CONFIG_FILE))
     {
-        console.log("Loading CONFIG File");
+        Log.info("Log.info(`Logger initialized (level=${Log.level})`);
+Loading CONFIG File");
         
         CONFIG = JSON.parse(fs.readFileSync(CONFIG_FILE));
         
-        console.log("CONFIG File loaded sucessfully.");
+        Log.info("CONFIG File loaded sucessfully.");
     }
     else
     {
-        console.warn("CONFIG File not found, a new one will be generated using enviroment data.");
+        Log.warn("CONFIG File not found, a new one will be generated using enviroment data.");
     }
 }
 catch(error)
 {
-    console.error("Warning: Error loading CONFIG.json server will not start.");
+    Log.error("Warning: Error loading CONFIG.json server will not start.");
     throw error;
 }
 
@@ -117,12 +120,12 @@ assert(CONFIG.server.port, `No port defined.\nThis can set in CONFIG under "serv
 
 try
 {
-    console.log("Saving CONFIG File");
+    Log.info("Saving CONFIG File");
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(CONFIG, undefined, 2));
 }
 catch(error)
 {
-    console.error("Warning: Error saving CONFIG.json server will not start.");
+    Log.error("Warning: Error saving CONFIG.json server will not start.");
     throw error;
 }
 
@@ -137,7 +140,7 @@ Load().then(
 
         setInterval(Save, 60000);
 
-        console.log("Loading Server....");
+        Log.info("Loading Server....");
 
         require("./server.js");
 

@@ -7,6 +7,7 @@ const JellyFin = require("../jellyfin-api.js");
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Process Intent: Get Arist Intent
@@ -18,15 +19,20 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
+    Log.debug('[NLU] Intent: Artist intents');
+    Log.debug('[NLU] Raw slots:', Object.fromEntries(Object.entries(slots || {}).map(([k,v]) => [k, {value: v?.value, resolved: v?.resolutions?.resolutionsPerAuthority?.[0]?.values?.[0]?.value?.name}])));
+
     if (!slots.artistname || !slots.artistname.value)
     {
         const speach = `I didn't catch the artist name.`;
         return [{status: false, speach}];
     }
 
-    console.log(`Requesting Artist: ${slots.artistname.value}`);
+    Log.info(`Requesting Artist: ${slots.artistname.value}`);
 
     const artists = await JellyFin.Artists.Search(slots.artistname.value);
+
+    try { Log.info('[Search] Artist results:', Log.summarizeItems(artists.items, 8)); Log.trace('[Search] Full artist search result:', artists); } catch (e) { }
         
     if (!artists.status || !artists.items[0])
     {
@@ -37,6 +43,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const artist = artists.items[0];
 
     const songs = await JellyFin.Music({limit, artistIds: artist.Id});
+
+    try { Log.info('[Search] Songs by artist:', Log.summarizeItems(songs.items, 8)); Log.trace('[Search] Full songs by artist result:', songs); } catch (e) { }
 
     if (!songs.status || !songs.items[0])
     {

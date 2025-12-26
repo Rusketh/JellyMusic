@@ -7,6 +7,7 @@ const JellyFin = require("../jellyfin-api");
 const Devices = require("../playlist/devices.js");
 
 const { CreateQueueIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Process Intent: Get Genre Intent
@@ -18,15 +19,20 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
+    Log.debug('[NLU] Intent: Genre intents');
+    Log.debug('[NLU] Raw slots:', Object.fromEntries(Object.entries(slots || {}).map(([k,v]) => [k, {value: v?.value, resolved: v?.resolutions?.resolutionsPerAuthority?.[0]?.values?.[0]?.value?.name}])));
+
     if (!slots.genre || !slots.genre.value)
     {
         const speach = `I didn't catch the genre of music.`;
         return [{status: false, speach}];
     }
 
-    console.log(`Requesting Genre: ${slots.genre.value}`);
+    Log.info(`Requesting Genre: ${slots.genre.value}`);
 
     const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
+
+    try { Log.info('[Search] Genre results:', Log.summarizeItems(genres.items, 8)); Log.trace('[Search] Full genre search result:', genres); } catch (e) { }
         
     if (!genres.status || !genres.items[0])
     {

@@ -1,3 +1,4 @@
+const Log = require('./logger.js');
 /*********************************************************************************
  * Request Items from API
  *      https://api.jellyfin.org/
@@ -22,7 +23,14 @@ const Request = async function(endpoint, params, ...args)
         }
     }
 
-    const response = await fetch(
+    // DEBUG: Log outgoing Jellyfin request (endpoint and query only; never log tokens).
+    Log.debug('[Jellyfin] GET', Log.redactUrl(url.toString()));
+
+    const started = Date.now();
+
+    let response;
+    try {
+        response = await fetch(
         url,
         {
             method: 'GET',
@@ -34,11 +42,25 @@ const Request = async function(endpoint, params, ...args)
             }
         }
     );
+    } catch (err) {
+        Log.error('[Jellyfin] Network error:', err);
+        return {status: false, error: String(err)};
+    }
+
+    Log.debug(`[Jellyfin] Response ${response.status} (${Date.now() - started}ms) for`, url.pathname);
 
     if (!response.ok)
         return {status: false, error: await response.text()};
 
     var result = await response.json();
+
+    // TRACE: show result summary
+    Log.trace('[Jellyfin] Result summary:', {
+        startIndex: result.StartIndex,
+        total: result.TotalRecordCount,
+        returned: Array.isArray(result.Items) ? result.Items.length : undefined
+    });
+    Log.debug('[Jellyfin] ' + Log.summarizeItems(result.Items, 8));
     
     return {status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
 };

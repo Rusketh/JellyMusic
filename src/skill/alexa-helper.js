@@ -1,4 +1,5 @@
 const Alexa = require('ask-sdk-core');
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Create Handler
@@ -17,8 +18,8 @@ const CreateHandler = function(type, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in handler canHandle("${type}"):`);
-                    console.error(err);
+                    Log.error(`Error in handler canHandle("${type}"):`);
+                    Log.error(err);
 
                     return false;
                 }
@@ -27,16 +28,25 @@ const CreateHandler = function(type, callback)
         handle:
             async function (handlerInput)
             {
-                const { responseBuilder } = handlerInput;
+                const { responseBuilder, requestEnvelope } = handlerInput;
 
                 try
                 {
-                    return await callback(handlerInput);
+                    const result = await callback(handlerInput);
+
+                    try {
+                        Log.debug('[Handler] Response Summary:', Log.responseSummary(result));
+                    } catch (e) {
+                        /* ignore logging errors */
+                    }
+
+                    return result;
                 }
                 catch(err)
                 {
-                    console.error(`Error in handler handle("${type}"):`);
-                    console.error(err);
+                    Log.error(`Error in handler handle("${type}"):`
+);
+                    Log.error(err);
 
                     const speach = `An interal error has occured.`;
                     return responseBuilder.speak(speach).getResponse();
@@ -63,8 +73,8 @@ const CreateIntent = function(intent, callback)
                 }
                 catch(err)
                 {
-                    console.error(`Error in intent canHandle("${intent}"):`);
-                    console.error(err);
+                    Log.error(`Error in intent canHandle("${intent}"):`);
+                    Log.error(err);
 
                     return false;
                 }
@@ -73,16 +83,31 @@ const CreateIntent = function(intent, callback)
         handle:
             async function (handlerInput)
             {
-                const { responseBuilder } = handlerInput;
+                const { responseBuilder, requestEnvelope } = handlerInput;
 
                 try
                 {
-                    return await callback(handlerInput);
+                    // Log canonical intent & slots for easier debugging
+                    try {
+                        const intentName = requestEnvelope?.request?.intent?.name;
+                        const slots = requestEnvelope?.request?.intent?.slots;
+                        Log.info(`[Intent] ${intentName}`, Log.summarizeSlots(slots));
+                    } catch (e) { /* swallow logging errors */ }
+
+                    const result = await callback(handlerInput);
+
+                    try {
+                        Log.debug('[Intent] Response Summary:', Log.responseSummary(result));
+                    } catch (e) {
+                        /* ignore logging errors */
+                    }
+
+                    return result;
                 }
                 catch(err)
                 {
-                    console.error(`Error in intent handle("${intent}"):`);
-                    console.error(err);
+                    Log.error(`Error in intent handle("${intent}"):`);
+                    Log.error(err);
 
                     const speach = `An interal error has occured, request not processed.`;
                     return responseBuilder.speak(speach).getResponse();

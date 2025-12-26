@@ -11,6 +11,7 @@ const PlayList = require("./playlist.js");
 const crypto = require("crypto");
 
 const fs = require("fs");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Save Device Queue
@@ -61,7 +62,7 @@ const Save = function()
 
         const promise = SaveDeviceQueue(playlist).then(
             () => {
-                console.log("Saved Device Queue: ", playlist.Device);
+                Log.info("Saved Device Queue: ", playlist.Device);
                 playlist.Dirty = false;
                 playlist.Saving = false;
             }
@@ -80,7 +81,7 @@ const Save = function()
 
 const LoadDeviceQueue = async function({deviceID, position, token, queue})
 {
-    console.log("Restoring Device Queue: ", deviceID);
+    Log.info("Restoring Device Queue: ", deviceID);
 
     const songs = { };
     const itemIDs = queue.map(({id}) => id);
@@ -120,7 +121,7 @@ const LoadDeviceQueue = async function({deviceID, position, token, queue})
         playList.Queue.push(queued);
     }
 
-    console.log("Device Queue Restored: ", deviceID);
+    Log.info("Device Queue Restored: ", deviceID);
 };
 
 /*********************************************************************************

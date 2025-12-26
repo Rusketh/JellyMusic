@@ -3,6 +3,7 @@ const Alexa = require('ask-sdk-core');
 const { CreateIntent } = require("./alexa-helper.js");
 
 const Devices = require("../playlist/devices.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Cancel Intent

@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 
 const Alexa = require('ask-sdk-core');
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Playlist Item
@@ -50,7 +51,9 @@ PlayListItem.getStreamURL = function()
     // Optional: cap bitrate (helps stability)
     url.searchParams.append("MaxStreamingBitrate", "192000");
 
-    return url.toString();
+    const finalUrl = url.toString();
+    Log.trace('[Stream] Generated stream URL:', Log.redactUrl(finalUrl));
+    return finalUrl;
 };
 
 /*********************************************************************************

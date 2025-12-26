@@ -3,6 +3,7 @@ const Alexa = require('ask-sdk-core');
 const Devices = require("../playlist/devices.js");
 
 const { CreateIntent } = require("./alexa-helper.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Current Track Query
@@ -25,7 +26,7 @@ const WhatThisIntent = CreateIntent(
         if (item)
             speach = `The current song is ${item.Item.Name} by ${item.Item.AlbumArtist}`;
 
-        console.log(speach);
+        Log.info(speach);
         
         return responseBuilder.speak(speach).getResponse();
     }

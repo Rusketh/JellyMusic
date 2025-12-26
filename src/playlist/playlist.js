@@ -1,4 +1,5 @@
 const PlayListItem = require("./item.js");
+const Log = require('../logger.js');
 
 /*********************************************************************************
  * Playlist Item
@@ -194,11 +195,11 @@ PlayList.Validate = function(directive, handlerInput)
     if (!token) return true;
 
     if (this.playbackToken && this.playbackToken === token) {
-        console.log(`Repeating token: ${token}`);
+        Log.warn(`Repeating token: ${token}`);
         return false;
     }
 
-    console.log(`Non repeating token: ${token}`);
+    Log.debug(`Non repeating token: ${token}`);
     this.playbackToken = token;
     return true;
 }
