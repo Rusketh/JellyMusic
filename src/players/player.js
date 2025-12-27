@@ -1,10 +1,12 @@
+const Alexa = require('ask-sdk-core');
+
 const AudioPlayer = require("./audio-player.js");
 
 const VisualPlayer = require("./visual-player.js");
 
 const SupportsAPL = function(handlerInput)
 {
-    return handlerInput.requestEnvelope.context.System.device.supportedInterfaces['Alexa.Presentation.APL'];
+    return Alexa.getSupportedInterfaces(handlerInput.requestEnvelope)['Alexa.Presentation.APL'];
 };
 
 const PlayItem = function(handlerInput, playlist, item)
@@ -31,9 +33,18 @@ const StopPlayback = function(handlerInput)
     return AudioPlayer.StopPlayback(handlerInput);
 }
 
+const EndSession = function(handlerInput, playlist)
+{
+    if (SupportsAPL(handlerInput))
+        return VisualPlayer.EndSession(handlerInput, playlist);
+
+    return AudioPlayer.EndSession(handlerInput, playlist);
+}
+
 module.exports = {
     SupportsAPL,
     PlayItem,
     EnqueueItem,
-    StopPlayback
+    StopPlayback,
+    EndSession
 };

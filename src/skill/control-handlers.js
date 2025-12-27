@@ -98,7 +98,7 @@ const PreviousButtonHandler = CreateHandler(
 
 const SessionEndedHandler = CreateHandler(
     "SessionEndedRequest",
-    async (handlerInput) => handlerInput.responseBuilder.getResponse()
+    Devices.doSessionEnded
 );
 
 /*********************************************************************************

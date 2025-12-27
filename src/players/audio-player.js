@@ -45,10 +45,16 @@ const StopPlayback = function(handlerInput)
     handlerInput.responseBuilder.addAudioPlayerStopDirective();
 
     return true;
-}
+};
+
+const EndSession = function(handlerInput, playlist)
+{
+    return true;
+};
 
 module.exports = {
     PlayItem,
     EnqueueItem,
-    StopPlayback
+    StopPlayback,
+    EndSession
 };

@@ -15,7 +15,7 @@ PlayListItem.new = function(item, token)
         {
             Id: item.Id,
             Name: item.Name,
-            Album: item.Albu,
+            Album: item.Album,
             AlbumId: item.AlbumId,
             AlbumArtist: item.AlbumArtist,
             AlbumPrimaryImageTag: item.AlbumPrimaryImageTag
@@ -23,6 +23,7 @@ PlayListItem.new = function(item, token)
         Playback:
         {
             Token: token || crypto.randomUUID(),
+            Runtime: item.RunTimeTicks / 10000,
             IsPlaying: false,
             IsPaused: false,
             Offset: 0

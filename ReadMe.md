@@ -26,6 +26,10 @@ Jelly Music is a **self-hosted Alexa Skill** designed for your Jellyfin server. 
   
   **If you do not set this your skill will no longer function after updating.**
 
+  Jellyfin music now requires the **"Alexa Presentation Language" Interface**  (see: Installation Instructions for more information).
+
+  **If you do not enable this your skill will no longer function after updating on echo devices.**
+
 ## Features
 
   
@@ -219,7 +223,7 @@ Once your Alexa Skill is created, you need to configure it. This might seem daun
 
   
 
-2. Navigate to **"Interfaces"** and **enable "Audio Player"**. This is crucial for audio streaming, and the skill will not function without it.
+2. Navigate to **"Interfaces"** and **enable "Audio Player"** and **enable "Alexa Presentation Language"**. This is crucial for audio streaming & diplaying information on echo devices. The skill will not function without these interfaces enabled.
 
 3. Grab the a preconfigured Alexa Skill JSON file in your language from here: [https://github.com/Rusketh/JellyMusic/blob/main/skill-json](https://github.com/Rusketh/JellyMusic/blob/main/skill-json)
 

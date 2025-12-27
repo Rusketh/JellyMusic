@@ -6,6 +6,8 @@ const Alexa = require('ask-sdk-core');
 
 const ControlHandlers = require("./control-handlers.js");
 
+const APLHandlers = require("./apl-handlers.js");
+
 const ControlIntents = require("./control-intents.js");
 
 const AlbumIntents = require("./album-intents.js");
@@ -66,6 +68,13 @@ const skill = Alexa.SkillBuilders.custom()
         ControlHandlers.PreviousButtonHandler,
         ControlHandlers.SessionEndedHandler,
 
+        APLHandlers.PlaybackPaused,
+        APLHandlers.PlaybackStarted,
+        APLHandlers.PlaybackFinished,
+        APLHandlers.PlaybackFailed,
+        APLHandlers.PlayPrevious,
+        APLHandlers.PlayNext,
+
         ControlIntents.StopIntent,
         ControlIntents.CancelIntent,
         ControlIntents.PauseIntent,
@@ -91,7 +100,8 @@ const skill = Alexa.SkillBuilders.custom()
         SongIntents.QueueSongIntent,
         GenreIntents.QueueGenreIntent,
 
-        QueryIntents.WhatThisIntent
+        QueryIntents.WhatThisIntent,
+        ErrorHandler //This is for debugging, since not all errors are passed into addErrorHandlers(ErrorHandler)
     ).addErrorHandlers(
         ErrorHandler
     ).withSkillId(CONFIG.skill.id).create();

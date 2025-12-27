@@ -209,7 +209,7 @@ const doClear = function(handlerInput)
  * 
  */
 
-const doPause = function(handlerInput)
+const doPause = function(handlerInput, offset)
 {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
@@ -217,9 +217,11 @@ const doPause = function(handlerInput)
 
     const playlist = getPlayList(deviceID);
 
-    playlist.pause(requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
+    playlist.pause(offset || requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
     
     Logger.Info(`[Device ${playlist.Id}]`, "Playback Paused.");
+
+    Player.StopPlayback(handlerInput);
 
     return responseBuilder.getResponse();
 };
@@ -345,6 +347,25 @@ const doPlayPrevious = function(handlerInput)
 };
 
 /*********************************************************************************
+ * End the session
+ */
+
+const doSessionEnded = function(handlerInput)
+{
+    const { responseBuilder, requestEnvelope } = handlerInput;
+    
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    Player.EndSession(handlerInput, playlist);
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Session ended.");
+
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
  * Exports
  */
 
@@ -363,5 +384,6 @@ module.exports = {
     doStop,
     doPlayCurrent,
     doPlayNext,
-    doPlayPrevious
+    doPlayPrevious,
+    doSessionEnded
 };

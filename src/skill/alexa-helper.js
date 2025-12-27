@@ -130,6 +130,61 @@ const CreateQueueIntent = function(intent, action, processor, responder, buildQu
     );
 };
 
+
+/*********************************************************************************
+ * Create APL Event Handler
+ */
+
+
+const CreateAPLEventHandler = function(event, callback)
+{
+    return {
+        canHandle:
+            function (handlerInput)
+            {
+                try
+                {
+                    const {requestEnvelope} = handlerInput;
+                    
+                    if (Alexa.getRequestType(requestEnvelope) != "Alexa.Presentation.APL.UserEvent")
+                        return false;
+
+                    return handlerInput.requestEnvelope.request.arguments[0] === event;
+                }
+                catch(err)
+                {
+                    Logger.Error(`Error in APL event handler canHandle("${event}"):`);
+                    Logger.Error(err);
+
+                    return false;
+                }
+            },
+
+        handle:
+            async function (handlerInput)
+            {
+                const { responseBuilder } = handlerInput;
+
+                try
+                {
+                    const args = handlerInput.requestEnvelope.request.arguments;
+
+                    console.log(args);
+
+                    return await callback(handlerInput, ...args.slice(1));
+                }
+                catch(err)
+                {
+                    Logger.Error(`Error in APL event handler handle("${event}"):`);
+                    Logger.Error(err);
+
+                    const speech = `An interal error has occured.`;
+                    return responseBuilder.getResponse();
+                }
+            }
+    }
+};
+
 /*********************************************************************************
  * Exports
  */
@@ -137,5 +192,6 @@ const CreateQueueIntent = function(intent, action, processor, responder, buildQu
 module.exports = {
     CreateHandler,
     CreateIntent,
-    CreateQueueIntent
+    CreateQueueIntent,
+    CreateAPLEventHandler
 };
