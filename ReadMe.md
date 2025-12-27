@@ -197,6 +197,7 @@ The following environment variables are **required**:
 
 The **configuration file** for Jelly Music, as well as the cached song queue for each connected device, are saved within the `/data` directory.
 
+
   
 
 **Important Considerations:**
