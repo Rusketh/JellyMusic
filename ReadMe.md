@@ -97,6 +97,30 @@ To run a Jelly Music instance, you will need:
 *  **Recommendation:** Set up an **NGINX reverse proxy server** and **Dynamic DNS (DDNS)** to achieve the public accessibility and trusted certificates.
 
   
+---
+
+
+## Network Architecture
+
+Both the Jellyfin server and the Jelly Music container must be available via HTTPS (port 443). This is achieved by using a reverse proxy server such as NGINX with a valid SSL certificate (e.g Lets Encrypt).
+
+```mermaid
+flowchart TB
+    A[("Alexa")] --(HTTPS: 443)--> B
+    B[Reverse Proxy]
+    B -- (HTTP: 8096) --> C
+    B -- (HTTP: 60648) --> D
+    C[Jellyfin]
+    D[Jelly Music]
+    D -- (HTTP: 8096) --> C
+```
+Alexa will send commands via the reverse proxy to the Jelly Music container.
+
+Alexa will stream audio files from the Jellyfin server via the reverse proxy.
+
+Jelly Music needs access to the Jellyfin server and it is not recomended for Jelly Music to call the Jellyfin API requests though the internet via the reverse proxy. For this reason it is best practice to set the local address of the jellyfin server so that API requests are transmitted over the local network, this improves both latency and security.
+
+
 
 ---
 
@@ -108,6 +132,7 @@ To run a Jelly Music instance, you will need:
 
 1. Set up the Docker container using the latest [**Docker image**](https://ghcr.io/rusketh/jellymusic/jellymusic).
 
+    *For stability use the main branch ``ghcr.io/rusketh/jellymusic/jellymusic:main``*
   
 
 2. Ensure you **enable the necessary port** in your Docker configuration.
@@ -169,8 +194,6 @@ The following environment variables are **required**:
 *Alexa will only communicate with HTTPS endpoints on port 443.*
 
 ### Data Directory
-
-  
 
 The **configuration file** for Jelly Music, as well as the **SQLite database** used to store the song queue for each connected device, are saved within the `/data` directory.
 
@@ -343,7 +366,7 @@ Here is a list of all the current none-standard intents used, the example comman
 | QueueGenreIntent | Queue {genre} music | Adds {genre} music to the queue. |
 ---
 
-  
+
 
 ## Help Developing
 
@@ -365,18 +388,18 @@ This project is designed for easy development outside of a docker container, by 
 Example config.json:
 ```{
   "Jellyfin": {
-    "host": <JELLYFIN_HOST>,
-    "key": <JELLYFIN_KEY>,
-    "local": <JELLYFIN_LOCAL*>
+    "host": "<JELLYFIN_HOST>",
+    "key": "<JELLYFIN_KEY>",
+    "local": "<JELLYFIN_LOCAL*>"
     "limit": <JELLYFIN_LIMIT*>,
   },
   "skill": {
-    "id": <SKILL_ID>,
-    "name": <SKILL_NAME>
+    "id": "<SKILL_ID>",
+    "name": "<SKILL_NAME>"
   },
   "server": {
     "port": <PORT>
   },
   "log_level": 3,
-  "language": <LANGUAGE*>
+  "language": "<LANGUAGE*>"
 }```
