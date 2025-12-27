@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -81,14 +83,20 @@ const PlayGenreIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
 
         var speech = LANGUAGE.Parse("GENRE_PLAYING", {genre_name: genres[0].Name});
 
         if (genres.length > 1)
             var speech = LANGUAGE.Parse("GENRE_PLAYING_SIMULAR", {genre_name: genres[0].Name});
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -124,14 +132,19 @@ const ShuffleGenreIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         var speech = LANGUAGE.Parse("GENRE_SHUFFLE", {genre_name: genres[0].Name});
 
         if (genres.length > 1)
             var speech = LANGUAGE.Parse("GENRE_SHUFFLE_SIMULAR", {genre_name: genres[0].Name});
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -171,14 +184,17 @@ const QueueGenreIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         var speech = LANGUAGE.Parse("GENRE_QUEUED", {genre_name: genres[0].Name, count});
 
         if (genres.length > 1)
             var speech = LANGUAGE.Parse("GENRE_QUEUED_SIMULAR", {genre_name: genres[0].Name, count});
     
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -149,7 +151,12 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         var speech = LANGUAGE.Parse("ALBUM_PLAYING", { album_name: album.Name } );
 
@@ -161,7 +168,7 @@ const PlayAlbumIntent = CreateQueueIntent(
                 }
             );
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -197,7 +204,12 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         var speech = LANGUAGE.Parse("ALBUM_SHUFFLE", { album_name: album.Name } );
 
@@ -209,7 +221,7 @@ const ShuffleAlbumIntent = CreateQueueIntent(
                 }
             );
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -249,8 +261,11 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+        
         var speech = LANGUAGE.Parse("ALBUM_QUEUED", { album_name: album.Name } );
 
         if (album.AlbumArtist)
@@ -261,7 +276,7 @@ const QueueAlbumIntent = CreateQueueIntent(
                 }
             );
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

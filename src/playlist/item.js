@@ -83,40 +83,6 @@ PlayListItem.getMetaData = function()
 };
 
 /*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play now
- */
-
-PlayListItem.getPlayDirective = function()
-{
-    return [
-        'REPLACE_ALL',
-        this.getStreamURL(),
-        this.Playback.Token,
-        this.Playback.Offset,
-        null,
-        this.getMetaData()
-    ];
-};
-
-/*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play now
- */
-
-PlayListItem.getPlayNextDirective = function({Token})
-{
-    return [
-        'ENQUEUE',
-        this.getStreamURL(),
-        this.Playback.Token,
-        this.Playback.Offset,
-        Token,
-        this.getMetaData()
-    ];
-};
-
-/*********************************************************************************
  * Start Playing
  */
 

@@ -1,0 +1,51 @@
+{
+    "SONG_NO_NAME": "Avast! I didn't catch the name o' that sea shanty.",
+    "SONG_NOTFOUND_BY_NAME": "I've scoured the seven seas, but found no song called %song_name%.",
+    "SONG_NOTFOUND_BY_NAME_AND_ARTIST": "Me compass can't find %song_name% by the landlubber %artist_name%.",
+    "SONG_NOTFOUND_SUGGEST": "I found no track called %song_name% by %artist_name%. Perhaps ye meant %suggestion_name% by %suggestion_artist%?",
+    
+    "SONG_PLAYING": "Lettin' fly with %song_name% on the %skill_name%!",
+    "SONG_PLAYING_BY_ARTIST": "Unleashin' %song_name% by %artist_name% on the %skill_name%!",
+    "SONG_QUEUED": "Stowed %song_name% in the cargo hold.",
+    "SONG_QUEUED_BY_ARTIST": "Stowed %song_name% by %artist_name% in the cargo hold.",
+
+    "ALBUM_NO_NAME": "Me ears be full o' salt! I didn't catch the name o' that collection.",
+    "ALBUM_NOTFOUND_BY_NAME": "I've no map that leads to an album called %album_name%.",
+    "ALBUM_NOTFOUND_SUGGEST": "Found no album called %album_name% by %artist_name%. Did ye mean %suggestion_name% by %suggestion_artist%?",
+    "ALBUM_NOTFOUND_BY_NAME_AND_ARTIST": "I didn't find nary an album called %album_name% by %artist_name%.",
+    "ALBUM_NO_MUSIC": "That chest be empty! No music found in the album %album_name%.",
+
+    "ALBUM_PLAYING": "Broadsidin' the album %album_name% on %skill_name%!",
+    "ALBUM_PLAYING_BY_ARTIST": "Broadsidin' %album_name% by %artist_name% on %skill_name%!",
+    "ALBUM_SHUFFLE": "Tossin' the album %album_name% to the winds on %skill_name%!",
+    "ALBUM_SHUFFLE_BY_ARTIST": "Mixin' up %album_name% by %artist_name% on %skill_name%!",
+    "ALBUM_QUEUED": "Added the %album_name% treasure to the queue.",
+    "ALBUM_QUEUED_BY_ARTIST": "Added %album_name% by %artist_name% to the queue.",
+
+    "ARTIST_NO_NAME": "Which bard be ye speakin' of? I didn't catch the name.",
+    "ARTIST_NOTFOUND_BY_NAME": "I've never heard tell of a musician called %artist_name%.",
+    "ARTIST_NO_MUSIC": "That pirate %artist_name% has no tunes to share.",
+
+    "ARTIST_PLAYING": "Playin' the works o' %artist_name% on %skill_name%!",
+    "ARTIST_SHUFFLE": "Shufflin' the loot from %artist_name% on %skill_name%!",
+    "ARTIST_QUEUED": "Added %count% shanties by %artist_name% to the hold.",
+
+    "GENRE_NO_NAME": "I didn't catch the style o' music, matey.",
+    "GENRE_NOTFOUND_BY_NAME": "I've never heard a sound called %genre_name% in all me travels.",
+    "GENRE_NO_MUSIC": "No songs o' the %genre_name% variety were found.",
+
+    "GENRE_PLAYING": "Belay that! Now playin' %genre_name% on %skill_name%!",
+    "GENRE_PLAYING_SIMULAR": "Playin' %genre_name% and other similar rhythms on %skill_name%!",
+    "GENRE_SHUFFLE": "Shufflin' the %genre_name% tunes on %skill_name%!",
+    "GENRE_SHUFFLE_SIMULAR": "Mixin' up %genre_name% and similar styles on %skill_name%!",
+    "GENRE_QUEUED": "Stashed %count% %genre_name% tracks in the queue.",
+    "GENRE_QUEUED_SIMULAR": "Stashed %count% %genre_name% and similar songs in the queue.",
+
+    "PLAYLIST_NO_NAME": "I didn't catch the name o' the scroll.",
+    "PLAYLIST_NOTFOUND_BY_NAME": "I found no list called %playlist_name% in me cabin.",
+    "PLAYLIST_NO_MUSIC": "There be no music on the %playlist_name% list.",
+
+    "PLAYLIST_PLAYING": "Unfurlin' the songs from %playlist_name% on %skill_name%!",
+    "PLAYLIST_SHUFFLE": "Scramblin' the playlist %playlist_name% on %skill_name%!",
+    "PLAYLIST_QUEUED": "Added %count% tunes from %playlist_name% to the queue."
+}

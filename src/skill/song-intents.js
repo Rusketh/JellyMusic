@@ -4,6 +4,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -129,7 +131,13 @@ const PlaySongIntent = CreateQueueIntent(
 
         playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
 
         var speech = LANGUAGE.Parse("SONG_PLAYING", { song_name: items[0].Name } );
                     
@@ -141,7 +149,7 @@ const PlaySongIntent = CreateQueueIntent(
                 }
             );
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     }
 );
 
@@ -161,7 +169,10 @@ const QueueSongIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
+
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         var speech = LANGUAGE.Parse("SONG_QUEUED", { song_name: items[0].Name } );
                     
@@ -173,13 +184,7 @@ const QueueSongIntent = CreateQueueIntent(
                 }
             );
 
-
-
-        var speech = `Added ${items[0].Name}, to the queue.`;
-        
-        if (items[0].AlbumArtist) speech = `Added ${items[0].Name} by ${items[0].AlbumArtist}, to the queue.`;
-
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     }
 );
 

@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -76,11 +78,16 @@ const PlayPlaylistIntent = CreateQueueIntent(
 
         [data.first, data.last] = _playlist.prefixItems(items);
 
-        const directive = _playlist.getPlayDirective();
+        const item = _playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, _playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${_playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         const speech = LANGUAGE.Parse("PLAYLIST_PLAYING", {playlist_name: playlist.Name});
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -116,11 +123,16 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
         [data.first, data.last] = _playlist.prefixItems(items);
 
-        const directive = _playlist.getPlayDirective();
+        const item = _playlist.getCurrentItem();
+
+        if (!Player.PlayItem(handlerInput, _playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${_playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name});
         
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -160,11 +172,14 @@ const QueuePlaylistIntent = CreateQueueIntent(
 
         _playlist.appendItems(items);
 
-        const directive = _playlist.getPlayDirective();
+        const item = _playlist.getCurrentItem();
+
+        if (Player.PlayItem(handlerInput, _playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
         const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name, count});
 
-        return responseBuilder.speak(speech).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
