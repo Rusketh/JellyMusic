@@ -25,7 +25,7 @@ CONFIG = {
     },
     server:
     {
-        port: "4141"
+        port: "60648"
     }
 };
 
