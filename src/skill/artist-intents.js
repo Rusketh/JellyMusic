@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api.js");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -20,18 +22,22 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.artistname || !slots.artistname.value)
     {
-        const speach = `I didn't catch the artist name.`;
-        return [{status: false, speach}];
+        const speech = LANGUAGE.Value("ARTIST_NO_NAME");
+
+        return [{status: false, speech}];
     }
 
-    console.log(`Requesting Artist: ${slots.artistname.value}`);
+    Logger.Debug(`[Artist Request]`, `Requested Artist ${slots.artistname.value}`);
 
     const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
     if (!artists.status || !artists.items[0])
     {
-        const speach = `I didn't find an artist called ${slots.artistname.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Artist Request]`, "Artist not found.");
+
+        const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", {artist_name: slots.artistname.value});
+
+        return [{status: false, speech}];
     }
 
     const artist = artists.items[0];
@@ -40,8 +46,11 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music by the artist ${slots.artistname.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Artist Request]`, "No music found.");
+
+        const speech = LANGUAGE.Parse("ARTIST_NO_MUSIC", {artist_name: slots.artistname.value});
+
+        return [{status: false, speech}];
     }
 
     const then = async function(data)
@@ -75,11 +84,16 @@ const PlayArtistIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Playing songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ARTIST_PLAYING", { artist_name: artist.Name } );
+
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -115,11 +129,16 @@ const ShuffleArtistIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Shuffling songs by artist ${artist.Name}, on ${CONFIG.skill.name}`;
-        
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ARTIST_SHUFFLE", { artist_name: artist.Name } );
+
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -159,11 +178,14 @@ const QueueArtistIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Added ${count} songs by artist ${artist.Name}, to the queue.`;
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        var speech = LANGUAGE.Parse("ARTIST_QUEUED", { artist_name: artist.Name, count } );
+        
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

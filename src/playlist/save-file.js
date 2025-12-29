@@ -61,7 +61,7 @@ const Save = function()
 
         const promise = SaveDeviceQueue(playlist).then(
             () => {
-                console.log("Saved Device Queue: ", playlist.Device);
+                Logger.Debug(`[Playlist ${playlist.Id}]`,"Saved queue to local file.");
                 playlist.Dirty = false;
                 playlist.Saving = false;
             }
@@ -80,8 +80,6 @@ const Save = function()
 
 const LoadDeviceQueue = async function({deviceID, position, token, queue})
 {
-    console.log("Restoring Device Queue: ", deviceID);
-
     const songs = { };
     const itemIDs = queue.map(({id}) => id);
 
@@ -120,7 +118,7 @@ const LoadDeviceQueue = async function({deviceID, position, token, queue})
         playList.Queue.push(queued);
     }
 
-    console.log("Device Queue Restored: ", deviceID);
+    Logger.Debug(`[Playlist ?]`,"Restored queue from local file.");
 };
 
 /*********************************************************************************

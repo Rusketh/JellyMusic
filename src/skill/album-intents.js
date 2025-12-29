@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -20,19 +22,22 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.albumname || !slots.albumname.value)
     {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't catch the album name. ${speach1}`;
-        return [{status: false, speach1, speach2}];
+        const speech = LANGUAGE.Value("ALBUM_NO_NAME");
+
+        return [{status: false, speach1}];
     }
 
-    console.log(`Requesting Album: ${slots.albumname.value}`);
+    Logger.Debug(`[Album Request]`, `Requested album ${slots.albumname.value}`);
 
     const albums = await JellyFin.Albums.Search(slots.albumname.value);
     
     if (!albums.status || !albums.items[0])
     {
-        const speach = `I didn't find an album called ${slots.albumname.value}`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Album Request]`, "No album found.");
+
+        const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME", {album_name: slots.albumname.value});
+
+        return [{status: false, speech}];
     }
 
     var artist = undefined;
@@ -40,14 +45,17 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (slots.artistname && slots.artistname.value)
     {
-        console.log(`Requesting Artist for Album: ${slots.artistname.value}`);
+        Logger.Debug(`[Album Request]`, `Requested Artist ${slots.artistname.value}`);
 
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
         if (!artists.status || !artists.items[0])
         {
-            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
-            return [{status: false, speach}];
+            Logger.Debug(`[Album Request]`, "No artist found.");
+
+            const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", {artist_name: slots.artistname.value});
+
+            return [{status: false, speech}];
         }
 
         artist = artists.items[0];
@@ -72,16 +80,32 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
                 
                 if (album && album.AlbumArtist)
                 {
-                    const suggestion = `${album.Name} by ${album.AlbumArtist}`;
+                    Logger.Debug(`[Album Request]`, `Returning suggestion ${album.Name} by ${album.AlbumArtist}`);
 
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
-                    
-                    return [{status: false, speach}];
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_SUGGEST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value,
+                            suggestion_name: album.Name,
+                            suggestion_artist: album.AlbumArtist
+                        }
+                    );
+
+                    return [{status: false, speech}];
                 }
                 else
                 {
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
-                    return [{status: false, speach}];
+
+                    Logger.Debug(`[Album Request]`, "Album not found.");
+
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME_AND_ARTIST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value
+                        }
+                    );
+
+                    return [{status: false, speech}];
                 }
             }
         }
@@ -91,7 +115,8 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
+        const speech = LANGUAGE.Parse("ALBUM_NO_MUSIC", { album_name: slots.albumname.value } );
+
         return [{status: false, speach1, speach2}];
     }
 
@@ -126,13 +151,24 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ALBUM_PLAYING", { album_name: album.Name } );
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_PLAYING_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -168,13 +204,24 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ALBUM_SHUFFLE", { album_name: album.Name } );
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_SHUFFLE_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -214,13 +261,22 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Adding album ${album.Name}, to the queue.`;
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
         
-        if (album.AlbumArtist) speach = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        var speech = LANGUAGE.Parse("ALBUM_QUEUED", { album_name: album.Name } );
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_QUEUED_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

@@ -6,6 +6,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -20,18 +22,22 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
     if (!slots.genre || !slots.genre.value)
     {
-        const speach = `I didn't catch the genre of music.`;
-        return [{status: false, speach}];
+        const speech = LANGUAGE.Value("GENRE_NO_NAME");
+
+        return [{status: false, speech}];
     }
 
-    console.log(`Requesting Genre: ${slots.genre.value}`);
+    Logger.Debug(`[Genre Request]`, `Requesting genre ${slots.genre.value}.`);
 
     const genres = await JellyFin.MusicGenres.Search(slots.genre.value);
         
     if (!genres.status || !genres.items[0])
     {
-        const speach = `I didn't find a genre called ${slots.genre.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Genre Request]`, `Genre not found.`);
+
+        const speech = LANGUAGE.Parse("GENRE_NOTFOUND_BY_NAME", {genre_name: slots.genre.value});
+
+        return [{status: false, speech}];
     }
     const genreIds = genres.items.map(item => item.Id).join("|");
 
@@ -39,8 +45,11 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
     
     if (!songs.status || !songs.items[0])
     {
-        const speach = `No songs of ${slots.genre.value} where found.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Genre Request]`, `No music found.`);
+
+        const speech = LANGUAGE.Parse("GENRE_NO_MUSIC", {genre_name: slots.genre.value});
+
+        return [{status: false, speech}];
     }
 
     const then = async function(data)
@@ -74,14 +83,20 @@ const PlayGenreIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Playing ${genres[0].Name}, on ${CONFIG.skill.name}`;
-        
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+
+        var speech = LANGUAGE.Parse("GENRE_PLAYING", {genre_name: genres[0].Name});
+
         if (genres.length > 1)
-            var speach = `Playing ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = LANGUAGE.Parse("GENRE_PLAYING_SIMULAR", {genre_name: genres[0].Name});
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -117,14 +132,19 @@ const ShuffleGenreIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Shuffling ${genres[0].Name}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
+
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("GENRE_SHUFFLE", {genre_name: genres[0].Name});
 
         if (genres.length > 1)
-            var speach = `Shuffling ${genres[0].Name} and simular genre's, on ${CONFIG.skill.name}`;
+            var speech = LANGUAGE.Parse("GENRE_SHUFFLE_SIMULAR", {genre_name: genres[0].Name});
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {
@@ -164,14 +184,17 @@ const QueueGenreIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Added ${count}, ${genres[0].Name} songs, to the queue.`;
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("GENRE_QUEUED", {genre_name: genres[0].Name, count});
 
         if (genres.length > 1)
-            var speach = `Added ${count}, ${genres[0].Name} and simular songs, to the queue.`;
+            var speech = LANGUAGE.Parse("GENRE_QUEUED_SIMULAR", {genre_name: genres[0].Name, count});
     
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     },
     function({ requestEnvelope }, {status, items}, data)
     {

@@ -4,6 +4,8 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
@@ -18,18 +20,22 @@ const Processor = async function(handlerInput, action = "play")
 
     if (!slots.songname || !slots.songname.value)
     {
-        const speach = `I didn't catch the song name.`;
-        return [{status: false, speach}];
+        const speech = LANGUAGE.Value("SONG_NO_NAME");
+
+        return [{status: false, speech}];
     }
 
-    console.log(`Requesting Song: ${slots.songname.value}`);
+    Logger.Debug(`[Music Request]`, `Requesting music ${slots.songname.value}.`);
 
     const songs = await JellyFin.Music.Search(slots.songname.value);
 
     if (!songs.status || !songs.items[0])
     {
-        const speach = `I didn't find a song called ${slots.songname.value}.`;
-        return [{status: false, speach}];
+        Logger.Debug(`[Music Request]`, "Music not found.");
+
+        const speech = LANGUAGE.Parse("SONG_NOTFOUND_BY_NAME", {song_name: slots.songname.value});
+
+        return [{status: false, speech}];
     }
 
     var artist = undefined;
@@ -37,14 +43,17 @@ const Processor = async function(handlerInput, action = "play")
 
     if (slots.artistname && slots.artistname.value)
     {
-        console.log(`Requesting Artist for Song: ${slots.artistname.value}`);
+        Logger.Debug(`[Music Request]`, `Requesting artist ${slots.artistname.value}.`);
 
         const artists = await JellyFin.Artists.Search(slots.artistname.value);
         
         if (!artists.status || !artists.items[0])
         {
-            const speach = `I didn't find an artist called ${slots.artistname.value}.`;
-            return [{status: false, speach}];
+            Logger.Debug(`[Music Request]`, "No artist found.");
+
+            const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", {artist_name: slots.artistname.value});
+
+            return [{status: false, speech}];
         }
 
         artist = artists.items[0];
@@ -58,7 +67,6 @@ const Processor = async function(handlerInput, action = "play")
             {
                 if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase())
                 {
-                    console.log("Found ", item.Name);
                     album = item;
                     break;
                 }
@@ -72,14 +80,31 @@ const Processor = async function(handlerInput, action = "play")
                 {
                     const suggestion = `${song.Name} by ${song.AlbumArtist}`;
 
-                    const speach = `I didn't find a track called ${slots.songname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
+                    Logger.Debug(`[Music Request]`, `Returning suggestion ${song.Name} by ${song.AlbumArtist}.`);
+
+                    const speech = LANGUAGE.Parse("SONG_NOTFOUND_SUGGEST",
+                        {
+                            song_name: slots.songname.value,
+                            artist_name: artist.name || slots.artistname.value,
+                            suggestion_name: song.Name,
+                            suggestion_artist: song.AlbumArtist
+                        }
+                    );
                     
-                    return [{status: false, speach}];
+                    return [{status: false, speech}];
                 }
                 else
                 {
-                    const speach = `I didn't find a track called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
-                    return [{status: false, speach}];
+                    Logger.Debug(`[Music Request]`, "Music not found.");
+
+                    const speech = LANGUAGE.Parse("SONG_NOTFOUND_BY_NAME_AND_ARTIST",
+                        {
+                            song_name: slots.songname.value,
+                            artist_name: artist.name || slots.artistname.value
+                        }
+                    );
+                    
+                    return [{status: false, speech}];
                 }
             }
         }
@@ -106,13 +131,25 @@ const PlaySongIntent = CreateQueueIntent(
 
         playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Playing ${items[0].Name}, on ${CONFIG.name}`;
-        
-        if (items[0].AlbumArtist) speach = `Playing ${items[0].Name} by ${items[0].AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+
+        var speech = LANGUAGE.Parse("SONG_PLAYING", { song_name: items[0].Name } );
+                    
+        if (items[0].AlbumArtist)
+            speech = LANGUAGE.Parse("SONG_PLAYING_BY_ARTIST",
+                {
+                    song_name: items[0].Name,
+                    song_artist: items[0].AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     }
 );
 
@@ -132,13 +169,22 @@ const QueueSongIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Added ${items[0].Name}, to the queue.`;
-        
-        if (items[0].AlbumArtist) speach = `Added ${items[0].Name} by ${items[0].AlbumArtist}, to the queue.`;
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        var speech = LANGUAGE.Parse("SONG_QUEUED", { song_name: items[0].Name } );
+                    
+        if (items[0].AlbumArtist)
+            speech = LANGUAGE.Parse("SONG_QUEUED_BY_ARTIST",
+                {
+                    song_name: items[0].Name,
+                    song_artist: items[0].AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     }
 );
 

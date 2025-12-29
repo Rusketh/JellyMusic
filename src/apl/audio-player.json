@@ -1,0 +1,356 @@
+{
+    "type": "APL",
+    "version": "2024.3",
+    "license": "Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.\nSPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0\nLicensed under the Amazon Software License  http://aws.amazon.com/asl/",
+    "theme": "dark",
+    "import": [
+        {
+            "name": "alexa-layouts",
+            "version": "1.7.0"
+        }
+    ],
+    "layouts": {
+        "AudioPlayer": {
+            "parameters": [
+                {
+                    "name": "audioControlType",
+                    "description": "The type of audio control to use. Default is skip (foward and backwards). Other options are skip | jump10 | jump30 | none.",
+                    "type": "string",
+                    "default": "skip"
+                },
+                {
+                    "name": "audioSources",
+                    "description": "Audio single source or an array of sources. Audios will be in a playlist if multiple sources are provided.",
+                    "type": "any"
+                },
+                {
+                    "name": "backgroundImageSource",
+                    "description": "URL for the background image source.",
+                    "type": "string"
+                },
+                {
+                    "name": "coverImageSource",
+                    "description": "URL for the cover image source. If not provided, text content will be left aligned.",
+                    "type": "string"
+                },
+                {
+                    "name": "primaryText",
+                    "description": "Primary text for the media.",
+                    "type": "string"
+                },
+                {
+                    "name": "secondaryText",
+                    "description": "Secondary text for the media.",
+                    "type": "string"
+                }
+            ],
+            "item": [
+                {
+                    "type": "Container",
+                    "bind": [
+                        {
+                            "name": "sliderThumbPosition",
+                            "type": "number",
+                            "value": 0
+                        },
+                        {
+                            "name": "sliderActive",
+                            "type": "boolean",
+                            "value": false
+                        },
+                        {
+                            "name": "videoProgressValue",
+                            "type": "number",
+                            "value": 0
+                        },
+                        {
+                            "name": "videoTotalValue",
+                            "type": "number",
+                            "value": 0
+                        }
+                    ],
+                    "height": "100%",
+                    "width": "100%",
+                    "items": [
+                        {
+                            "type": "AlexaBackground",
+                            "id": "AlexaBackground",
+                            "description": "Main backgroud",
+                            "backgroundImageSource": "${backgroundImageSource}"
+                        },
+                        {
+                            "position": "absolute",
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                            "type": "Container",
+                            "height": "100%",
+                            "width": "100%",
+                            "top": "@mainViewTopSpacing",
+                            "items": [
+                                {
+                                    "direction": "column",
+                                    "items": [
+                                        {
+                                            "items": [
+                                                {
+                                                    "justifyContent": "center",
+                                                    "alignItems": "center",
+                                                    "items": [
+                                                        {
+                                                            "type": "AlexaImage",
+                                                            "imageSource": "${coverImageSource}",
+                                                            "imageScale": "best-fill",
+                                                            "imageAspectRatio": "square",
+                                                            "imageShadow": true,
+                                                            "imageRoundedCorner": true
+                                                        }
+                                                    ],
+                                                    "numbering": "skip",
+                                                    "position": "absolute",
+                                                    "type": "Container",
+                                                    "height": "100%",
+                                                    "width": "100%"
+                                                },
+                                                {
+                                                    "direction": "column",
+                                                    "shrink": 1,
+                                                    "justifyContent": "end",
+                                                    "alignItems": "center",
+                                                    "items": [
+                                                        {
+                                                            "text": "${primaryText}",
+                                                            "textAlign": "center",
+                                                            "maxLines": 1,
+                                                            "fontSize": "40dp",
+                                                            "type": "Text",
+                                                            "id": "Audio_PrimaryText",
+                                                            "accessibilityLabel": "${primaryText}",
+                                                            "style": "textStyleDisplay4",
+                                                            "width": "100%"
+                                                        },
+                                                        {
+                                                            "text": "${secondaryText}",
+                                                            "textAlign": "center",
+                                                            "maxLines": 1,
+                                                            "fontSize": "30dp",
+                                                            "type": "Text",
+                                                            "id": "Audio_SecondaryText",
+                                                            "accessibilityLabel": "${secondaryText}",
+                                                            "style": "textStyleBody",
+                                                            "width": "100%"
+                                                        }
+                                                    ],
+                                                    "numbering": "normal",
+                                                    "description": "Track Info",
+                                                    "type": "Container",
+                                                    "height": "100%",
+                                                    "width": "100%"
+                                                }
+                                            ],
+                                            "numbered": true,
+                                            "position": "relative",
+                                            "description": "Cover image",
+                                            "type": "Container",
+                                            "id": "Audio_CoverImage",
+                                            "height": "100%",
+                                            "width": "100%"
+                                        }
+                                    ],
+                                    "description": "Cover image and track info",
+                                    "type": "Container",
+                                    "height": "50%",
+                                    "width": "100%"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "scale": "best-fill",
+                                            "autoplay": true,
+                                            "audioTrack": "background",
+                                            "onPause": [
+                                                {
+                                                    "type": "SendEvent",
+                                                    "arguments": [
+                                                        "onPlaybackPaused",
+                                                        "${event.duration}"
+                                                    ]
+                                                }
+                                            ],
+                                            "onPlay": [
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoTotalValue",
+                                                    "value": "${event.duration}"
+                                                },
+                                                {
+                                                    "type": "SendEvent",
+                                                    "arguments": [
+                                                        "onPlaybackStarted"
+                                                    ]
+                                                }
+                                            ],
+                                            "onEnd": [
+                                                {
+                                                "type": "SendEvent",
+                                                "arguments": [ "onPlaybackFinished" ]
+                                                }
+                                            ],
+                                            "onTrackUpdate": [
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoTotalValue",
+                                                    "value": "${event.duration}"
+                                                }
+                                            ],
+                                            "onTimeUpdate": [
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoProgressValue",
+                                                    "value": "${event.currentTime}"
+                                                },
+                                                {
+                                                    "type": "SetValue",
+                                                    "componentId": "slider",
+                                                    "property": "progressValue",
+                                                    "value": "${videoProgressValue}"
+                                                },
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoTotalValue",
+                                                    "value": "${event.duration}"
+                                                }
+                                            ],
+                                            "onTrackReady": [
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoTotalValue",
+                                                    "value": "${event.duration}"
+                                                }
+                                            ],
+                                            "onTrackFail": [
+                                                {
+                                                    "type": "SetValue",
+                                                    "property": "videoTotalValue",
+                                                    "value": "0"
+                                                },
+                                                {
+                                                    "type": "SendEvent",
+                                                    "arguments": [
+                                                        "onPlaybackFailed"
+                                                    ]
+                                                }
+                                            ],
+                                            "sources": "${audioSources}",
+                                            "description": "A hidden Video component to play the audio.",
+                                            "type": "Video",
+                                            "id": "videoPlayer",
+                                            "height": 1,
+                                            "width": 1,
+                                            "position": "absolute"
+                                        },
+                                        {
+                                            "description": "Determinate Slider Container",
+                                            "type": "Container",
+                                            "width": "100%",
+                                            "paddingTop": "@sliderPaddingTop",
+                                            "items": [
+                                                {
+                                                    "type": "Container",
+                                                    "width": "100%",
+                                                    "alignItems": "center",
+                                                    "item": [
+                                                        {
+                                                            "type": "AlexaSlider",
+                                                            "id": "slider",
+                                                            "progressValue": "${videoProgressValue}",
+                                                            "totalValue": "${videoTotalValue}",
+                                                            "positionPropertyName": "sliderThumbPosition",
+                                                            "metadataDisplayed": true,
+                                                            "metadataPosition": "above_right",
+                                                            "width": "100%",
+                                                            "theme": "${viewport.theme}",
+                                                            "onUpCommand": [
+                                                                {
+                                                                    "type": "ControlMedia",
+                                                                    "componentId": "videoPlayer",
+                                                                    "command": "seek",
+                                                                    "value": "${sliderThumbPosition - videoProgressValue}"
+                                                                }
+                                                            ],
+                                                            "onMoveCommand": [
+                                                                {
+                                                                    "type": "SetValue",
+                                                                    "property": "sliderActive",
+                                                                    "value": true
+                                                                }
+                                                            ],
+                                                            "onDownCommand": [
+                                                                {
+                                                                    "type": "SetValue",
+                                                                    "property": "sliderActive",
+                                                                    "value": true
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "AlexaTransportControls",
+                                                            "mediaComponentId": "videoPlayer",
+                                                            "playPauseToggleButtonId": "playPauseToggleButtonId",
+                                                            "primaryControlSize": "@primaryControlSize",
+                                                            "secondaryControls": "${audioControlType}",
+                                                            "secondaryControlSize": "@secondaryControlSize",
+                                                            "autoplay": true,
+                                                            "theme": "${viewport.theme}",
+                                                            "secondaryControlsLeftAction": [
+                                                                {
+                                                                    "type": "SendEvent",
+                                                                    "arguments": [
+                                                                        "onPlayPrevious"
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "secondaryControlsRightAction": [
+                                                                {
+                                                                    "type": "SendEvent",
+                                                                    "arguments": [
+                                                                        "onPlayNext"
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "secondaryControlsAVGLeft": "M6 6H8V18H6V6ZM9.5 12L19 18V6L9.5 12Z",
+                                                            "secondaryControlsAVGRight": "M5 6L14.5 12L5 18V6ZM16 6H18V18H16V6Z"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "type": "Container",
+                                    "description": "Slider and controls.",
+                                    "id": "Audio_AudioInfo",
+                                    "height": "50%",
+                                    "width": "80%"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "mainTemplate": {
+        "parameters": [
+            "payload"
+        ],
+        "items": [
+            {
+                "type": "AudioPlayer",
+                "audioSources": "${payload.audioPlayerData.properties.audioSources}",
+                "backgroundImageSource": "${payload.audioPlayerData.properties.backgroundImage}",
+                "coverImageSource": "${payload.audioPlayerData.properties.coverImageSource}",
+                "primaryText": "${payload.audioPlayerData.properties.primaryText}",
+                "secondaryText": "${payload.audioPlayerData.properties.secondaryText}"
+            }
+        ]
+    }
+}

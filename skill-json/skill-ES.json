@@ -1,0 +1,384 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "jelly music",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PauseIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ResumeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NextIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PreviousIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "pon el álbum {albumname} de {artistname}",
+                        "reproduce el álbum {albumname} de {artistname}",
+                        "pon el álbum {albumname}",
+                        "reproduce el álbum {albumname}",
+                        "pon álbum {albumname} de {artistname}",
+                        "reproduce álbum {albumname} de {artistname}",
+                        "pon álbum {albumname}",
+                        "reproduce álbum {albumname}"
+                    ]
+                },
+                {
+                    "name": "PlayArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "pon canciones de {artistname}",
+                        "reproduce canciones de {artistname}",
+                        "pon música de {artistname}",
+                        "reproduce música de {artistname}",
+                        "pon al artista {artistname}",
+                        "reproduce al artista {artistname}",
+                        "pon {artistname}",
+                        "reproduce {artistname}"
+                    ]
+                },
+                {
+                    "name": "PlaySongIntent",
+                    "slots": [
+                        {
+                            "name": "songname",
+                            "type": "AMAZON.MusicRecording"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "pon {songname} de {artistname}",
+                        "reproduce {songname} de {artistname}",
+                        "pon la canción {songname} de {artistname}",
+                        "reproduce la canción {songname} de {artistname}",
+                        "pon {songname}",
+                        "reproduce {songname}",
+                        "pon la canción {songname}",
+                        "reproduce la canción {songname}"
+                    ]
+                },
+                {
+                    "name": "PlayPlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "pon la lista {playlistname}",
+                        "reproduce la lista {playlistname}",
+                        "pon lista {playlistname}",
+                        "reproduce lista {playlistname}",
+                        "pon la playlist {playlistname}",
+                        "reproduce la playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "ShuffleAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "pon el álbum {albumname} en aleatorio",
+                        "pon el álbum {albumname} de {artistname} en aleatorio",
+                        "reproduce el álbum {albumname} en aleatorio",
+                        "reproduce el álbum {albumname} de {artistname} en aleatorio",
+                        "aleatorio el álbum {albumname}",
+                        "aleatorio el álbum {albumname} de {artistname}",
+                        "mezcla el álbum {albumname}",
+                        "mezcla el álbum {albumname} de {artistname}"
+                    ]
+                },
+                {
+                    "name": "QueueAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "añade el álbum {albumname} de {artistname} a la cola",
+                        "añade el álbum {albumname} a la cola",
+                        "pon en cola el álbum {albumname} de {artistname}",
+                        "pon en cola el álbum {albumname}",
+                        "cola el álbum {albumname} de {artistname}",
+                        "cola el álbum {albumname}"
+                    ]
+                },
+                {
+                    "name": "ShuffleArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "pon {artistname} en aleatorio",
+                        "pon canciones de {artistname} en aleatorio",
+                        "reproduce {artistname} en aleatorio",
+                        "reproduce canciones de {artistname} en aleatorio",
+                        "mezcla canciones de {artistname}",
+                        "aleatorio canciones de {artistname}"
+                    ]
+                },
+                {
+                    "name": "ShufflePlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "pon la lista {playlistname} en aleatorio",
+                        "reproduce la lista {playlistname} en aleatorio",
+                        "mezcla la lista {playlistname}",
+                        "aleatorio la lista {playlistname}",
+                        "mezcla playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "QueuePlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "añade la lista {playlistname} a la cola",
+                        "añade lista {playlistname} a la cola",
+                        "pon en cola la lista {playlistname}",
+                        "cola la lista {playlistname}",
+                        "pon en cola playlist {playlistname}"
+                    ]
+                },
+                {
+                    "name": "QueueSongIntent",
+                    "slots": [
+                        {
+                            "name": "songname",
+                            "type": "AMAZON.MusicRecording"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "añade {songname} a la cola",
+                        "añade la canción {songname} a la cola",
+                        "añade {songname} de {artistname} a la cola",
+                        "añade la canción {songname} de {artistname} a la cola",
+                        "pon en cola {songname}",
+                        "pon en cola la canción {songname}",
+                        "pon en cola {songname} de {artistname}",
+                        "pon en cola la canción {songname} de {artistname}"
+                    ]
+                },
+                {
+                    "name": "ClearQueueIntent",
+                    "slots": [],
+                    "samples": [
+                        "limpia la cola",
+                        "vacía la cola",
+                        "borra la cola",
+                        "quita todo de la cola"
+                    ]
+                },
+                {
+                    "name": "PlayGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "pon música {genre}",
+                        "reproduce música {genre}",
+                        "pon género {genre}",
+                        "reproduce género {genre}",
+                        "pon {genre}",
+                        "reproduce {genre}"
+                    ]
+                },
+                {
+                    "name": "QueueGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "añade música {genre} a la cola",
+                        "pon en cola música {genre}",
+                        "cola música {genre}",
+                        "añade género {genre} a la cola",
+                        "pon en cola género {genre}"
+                    ]
+                },
+                {
+                    "name": "ShuffleGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "pon música {genre} en aleatorio",
+                        "reproduce música {genre} en aleatorio",
+                        "mezcla música {genre}",
+                        "aleatorio música {genre}",
+                        "mezcla género {genre}",
+                        "aleatorio género {genre}"
+                    ]
+                },
+                {
+                    "name": "WhatThisIntent",
+                    "slots": [],
+                    "samples": [
+                        "qué está sonando",
+                        "qué está sonando ahora",
+                        "qué es esto",
+                        "qué canción es esta",
+                        "cómo se llama esta canción",
+                        "dime el nombre de esta canción"
+                    ]
+                },
+                {
+                    "name": "QueueArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "añade canciones de {artistname} a la cola",
+                        "pon en cola canciones de {artistname}",
+                        "cola canciones de {artistname}",
+                        "añade {artistname} a la cola",
+                        "pon en cola {artistname}"
+                    ]
+                },
+
+                {
+                    "name": "PlayMovieIntent",
+                    "slots": [
+                        { "name": "moviename", "type": "AMAZON.SearchQuery" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "reproducir la película {moviename} en {devicename}",
+                        "ver {moviename} en {devicename}",
+                        "reproducir la película {moviename}"
+                    ]
+                },
+                {
+                    "name": "PlaySeriesIntent",
+                    "slots": [
+                        { "name": "seriesname", "type": "AMAZON.SearchQuery" },
+                        { "name": "season", "type": "AMAZON.NUMBER" },
+                        { "name": "episode", "type": "AMAZON.NUMBER" },
+                        { "name": "devicename", "type": "PLAYBACK_DEVICE" }
+                    ],
+                    "samples": [
+                        "reproducir la serie {seriesname} en {devicename}",
+                        "reproducir {seriesname} en {devicename}",
+                        "reproducir temporada {season} episodio {episode} de {seriesname} en {devicename}",
+                        "reproducir temporada {season} de {seriesname} en {devicename}",
+                        "reproducir la serie {seriesname}"
+                    ]
+                },
+                {
+                    "name": "ListPlaybackDevicesIntent",
+                    "slots": [],
+                    "samples": [
+                        "lista de dispositivos",
+                        "qué dispositivos hay",
+                        "qué dispositivos están disponibles"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "PLAYBACK_DEVICE",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Fire TV Salon",
+                                "synonyms": ["tele del salón", "tv del salón", "salón"]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Samsung TV Dormitorio",
+                                "synonyms": ["tele del dormitorio", "tv del cuarto", "dormitorio"]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

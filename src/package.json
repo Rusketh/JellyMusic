@@ -1,24 +1,18 @@
 {
   "homepage": "https://github.com/Rusketh/JellyMusic/blob/main/ReadMe.md",
-
-  "author":
-  {
-    "name":"Rusketh"
+  "author": {
+    "name": "Rusketh"
   },
-
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "https://github.com/Rusketh/JellyMusic.git"
   },
-
   "license": "GPL-3.0-or-later",
-  
-  "dependencies":
-  {
+  "dependencies": {
     "ask-sdk": "^2.14.0",
     "ask-sdk-dynamodb-persistence-adapter": "^2.14.0",
     "ask-sdk-express-adapter": "^2.14.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "fuzzball": "^2.2.3"
   }
 }

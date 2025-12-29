@@ -6,6 +6,8 @@ const Alexa = require('ask-sdk-core');
 
 const ControlHandlers = require("./control-handlers.js");
 
+const APLHandlers = require("./apl-handlers.js");
+
 const ControlIntents = require("./control-intents.js");
 
 const AlbumIntents = require("./album-intents.js");
@@ -34,15 +36,15 @@ const ErrorHandler = {
             error = requestEnvelope.request.error;
 
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-        console.error(`Error handled: ${type}`);
+        Logger.Error(`Error handled: ${type}`);
 
         if (type == "IntentRequest")
         {
             const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
-            console.error(`Intent: ${intent}`);
+            Logger.Error(`Intent: ${intent}`);
         }
 
-        console.error(error);
+        Logger.Error(error);
 
         return responseBuilder.getResponse();
     }
@@ -64,6 +66,14 @@ const skill = Alexa.SkillBuilders.custom()
         ControlHandlers.PauseButtonHandler,
         ControlHandlers.NextButtonHandler,
         ControlHandlers.PreviousButtonHandler,
+        ControlHandlers.SessionEndedHandler,
+
+        APLHandlers.PlaybackPaused,
+        APLHandlers.PlaybackStarted,
+        APLHandlers.PlaybackFinished,
+        APLHandlers.PlaybackFailed,
+        APLHandlers.PlayPrevious,
+        APLHandlers.PlayNext,
 
         ControlIntents.StopIntent,
         ControlIntents.CancelIntent,
@@ -90,7 +100,8 @@ const skill = Alexa.SkillBuilders.custom()
         SongIntents.QueueSongIntent,
         GenreIntents.QueueGenreIntent,
 
-        QueryIntents.WhatThisIntent
+        QueryIntents.WhatThisIntent,
+        ErrorHandler //This is for debugging, since not all errors are passed into addErrorHandlers(ErrorHandler)
     ).addErrorHandlers(
         ErrorHandler
     ).withSkillId(CONFIG.skill.id).create();

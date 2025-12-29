@@ -20,14 +20,12 @@ const WhatThisIntent = CreateIntent(
         
         const item = playlist.getCurrentItem();
 
-        var speach = "There is currently no song playing.";
+        var speech = "There is currently no song playing.";
 
         if (item)
-            speach = `The current song is ${item.Item.Name} by ${item.Item.AlbumArtist}`;
-
-        console.log(speach);
+            speech = `The current song is ${item.Item.Name} by ${item.Item.AlbumArtist}`;
         
-        return responseBuilder.speak(speach).getResponse();
+        return responseBuilder.speak(speech).getResponse();
     }
 );
 
