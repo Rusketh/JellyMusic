@@ -1,259 +1,118 @@
-const fuzzball = require('fuzzball');
+const https = require('https');
 
 /*********************************************************************************
- * Request Items from API
- *      https://api.jellyfin.org/
+ * API Request
  */
 
-const Request = async function(endpoint, params, ...args)
-{
-    const url = new URL(endpoint, CONFIG.jellyfin.local);
-    
-    if (params)
+const Agent = new https.Agent({ keepAlive: true });
+
+const RequestOptions = {
+    method: 'GET',
+    agent: Agent,
+    timeout: 5000,
+    headers:
     {
-        params = Object.assign({}, params, ...args);
-
-        for (const key in params)
-        {
-            const value = params[key];
-
-            if (value == null)
-                continue;
-            else if (value instanceof Array)
-                value.forEach(item => url.searchParams.append(key, String(item)));
-            else
-                url.searchParams.append(key, String(value));
-        }
+        Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
     }
+};
 
-    const response = await fetch(
-        url,
-        {
-            method: 'GET',
-            headers:
-            {
-                Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+const MakeAPIRequest = async function (url, { ids, query, albums, artists, genres, parent }, startIndex, limit) {
+
+    url.searchParams.append("limit", limit || CONFIG.jellyfin.limit);
+
+    if (query) url.searchParams.append("searchTerm", query);
+    if (startIndex) url.searchParams.append("startIndex", startIndex);
+    if (ids) url.searchParams.append("ids", ids.join(","));
+    if (albums) url.searchParams.append("albumIds", albums.join(","));
+    if (artists) url.searchParams.append("artistIds", artists.join(","));
+    if (genres) url.searchParams.append("genreIds", genres.join(","));
+    if (parent) url.searchParams.append("parentId", parent);
+
+    Logger.Debug("[JellyFin API]", `Requesting ${url.pathname} with ${url.searchParams.toString()}.`);
+
+    try {
+        const response = await fetch(url, RequestOptions);
+
+        if (!response.ok) {
+            Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}) ${await response.text()}.`);
+            return { status: false };
         }
-    );
 
-    if (!response.ok)
-    {
-        Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}).`);
-        
-        //TODO: Trace Error Message?
-        
-        return {status: false, error: await response.text()};
+        var result = await response.json();
+
+        Logger.Debug("[JellyFin API]", `Response returned ${result.Items.length} items.`);
+
+        return { status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
     }
+    catch (error) {
+        if (error.name == "SyntaxError")
+            Logger.Error("[JellyFin API]", `Failed to parse response from Server (path: ${url.pathname}).`);
+        else
+            Logger.Error("[JellyFin API]", `Failed to parse response from Server (path: ${url.pathname}).`);
 
-    var result = await response.json();
-    
-    return {status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
+        return { status: false };
+    }
 };
 
 /*********************************************************************************
- * Request Artists
+ * Query Endpoints
  */
 
-const Artists = async (...params) => await Request("/Artists", ...params);
+const Music = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
 
-Artists.ByName = async (artist, ...params) => await Request(`/Artists/${artist}`, ...params);
-
-Artists.AlbumArtists = async (...params) => await Request("/Artists/AlbumArtists", ...params);
-
-/*********************************************************************************
- * Request Items
- */
-
-const Items = async (...params) => await Request("/Items", { Recursive:true }, ...params);
-
-Items.Artists = Artists;
-
-Items.Music = async (...params) => await Items({includeItemTypes: "Audio"}, ...params);
-
-Items.Albums = async (...params) => await Items({includeItemTypes: "MusicAlbum"}, ...params);
-
-Items.MusicGenres = async (...params) => await Request("/MusicGenres", ...params);
-
-Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"}, ...params);
-
-/*********************************************************************************
- * Search Function
- */
-
-const Search = async function(api, field, query, ...perams)
-{
-    const result = await api(...perams);
-
-    if (!result.status) return result;
-
-    query = query.toLowerCase();
-
-    const collator = new Intl.Collator(undefined, {sensitivity: "accent", usage: "search"});
-
-    result.items = result.items.filter((item) => {
-        const value = item[field];
-
-        if (value == null) return false;
-
-        if (typeof value === 'string')
-            return collator.compare(value.toLowerCase(), query) === 0 || value.toLowerCase().includes(query);
-        
-        if (value instanceof Array)
-            for(v of value)
-                if (collator.compare(v.toLowerCase(), query) === 0 || v.toLowerCase().includes(query)) return true;
-
-        return false;
-    });
+    url.searchParams.append("Recursive", true);
+    url.searchParams.append("includeItemTypes", "Audio");
+    url.searchParams.append("fields", "Id,Name,RunTimeTicks,Artists,Album,AlbumId,PrimaryImageTag,IndexNumber,Genres");
 
 
-    return result;
+    return await MakeAPIRequest(url, query, startIndex, limit);
 };
 
-Items.Music.Search = async (query, ...params) => await Search(Items.Music, "Name", query, ...params);
+const Artists = async function (query, startIndex, limit) {
+    const url = new URL("/Artists", CONFIG.jellyfin.local);
 
-Items.Albums.Search = async (query, ...params) => await Search(Items.Albums, "Name", query, ...params);
+    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
 
-Items.Artists.Search = async (query, ...params) => await Search(Items.Artists, "Name", query, ...params);
-
-Items.MusicGenres.Search = async (query, ...params) => await Search(Items.MusicGenres, "Name", query, ...params);
-
-Items.Playlists.Search = async (query, ...params) => await Search(Items.Playlists, "Name", query, ...params);
-
-/*********************************************************************************
- * Fuzzy Search Function: Warning this is SLOW!
- */
-
-const FuzzySearch = async function(api, field, query, ...perams)
-{
-    const result = await api(perams);
-
-    if (!result.status) return result;
-
-    result.items.forEach(item => item.score = fuzzball.token_sort_ratio(query, item[field]));
-    result.items = result.items.filter((item) => item.score > 60);
-    result.items.sort((a, b) => b.score - a.score);
-
-    return result;
+    return await MakeAPIRequest(url, query, startIndex, limit);
 };
 
-Items.Music.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Music, "Name", query, ...params);
+const Albums = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
 
-Items.Albums.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Albums, "Name", query, ...params);
+    url.searchParams.append("includeItemTypes", "MusicAlbum");
+    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
 
-Items.Artists.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Artists, "Name", query, ...params);
-
-Items.MusicGenres.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.MusicGenres, "Name", query, ...params);
-
-Items.Playlists.FuzzySearch = async (query, ...params) => await FuzzySearch(Items.Playlists, "Name", query, ...params);
-
-/*********************************************************************************
- * Find Albums
- */
-
-Items.Albums.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.FuzzySearch(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Albums({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.genres = result.items;
-
-    return result2;
+    return await MakeAPIRequest(url, query, startIndex, limit);
 };
 
-Items.Albums.ByArist = async function(query, ...params)
-{
-    const result = await Items.Artists.Search(query);
+const MusicGenres = async function (query, startIndex, limit) {
+    const url = new URL("/MusicGenres", CONFIG.jellyfin.local);
 
-    if (!result.status) return result;
+    url.searchParams.append("fields", "Id,Name");
 
-    const result2 = await Items.Albums({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.albums = result.items;
-
-    return result2;
+    return await MakeAPIRequest(url, query, startIndex, limit);
 };
 
-/*********************************************************************************
- * Find Artist
- */
+const Playlists = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
 
-Items.Artists.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.FuzzySearch(query);
+    url.searchParams.append("fields", "Id,Name");
+    url.searchParams.append("includeItemTypes", "Playlist");
 
-    if (!result.status) return result;
-
-    const result2 = await Items.Artists({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.artists = result.items;
-
-    return result2;
+    return await MakeAPIRequest(url, query, startIndex, limit);
 };
-
-/*********************************************************************************
- * Find Songs
- */
-
-Items.Music.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.FuzzySearch(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.genres = result.items;
-
-    return result2;
-};
-
-Items.Music.ByArist = async function(query, ...params)
-{
-    const result = await Items.Artists.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.artists = result.items;
-
-    return result2;
-};
-
-Items.Music.ByAlbum = async function(query, ...params)
-{
-    const result = await Items.Albums.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({albumIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.albums = result.items;
-
-    return result2;
-};
-
 
 /*********************************************************************************
  * Exports
  */
 
-module.exports = Items;
+module.exports = {
+    Music,
+    Artists,
+    Albums,
+    MusicGenres,
+    Playlists
+};

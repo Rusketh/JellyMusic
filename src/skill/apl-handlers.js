@@ -2,6 +2,10 @@ const { CreateAPLEventHandler } = require("./alexa-helper.js");
 
 const Devices = require("../playlist/devices.js");
 
+/*********************************************************************************
+ * APL Handlers: Device Control
+ */
+
 const PlaybackPaused = CreateAPLEventHandler(
     "onPlaybackPaused",
     Devices.doPause
@@ -33,6 +37,10 @@ const PlayNext = CreateAPLEventHandler(
 );
 
 //Devices.onPlaybackStopped
+
+/*********************************************************************************
+ * Exports
+ */
 
 module.exports = {
     PlaybackPaused,

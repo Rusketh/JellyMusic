@@ -2,10 +2,11 @@
 
 const APLDocument = require("../apl/audio-player.json");
 
-const ShowAPL = function(handlerInput, playlist, item)
-{
-    //if (playlist.APLOpen)
-    //    return false;
+/*********************************************************************************
+ * Show APL Player
+ */
+
+const ShowAPL = function (handlerInput, playlist, item) {
 
     handlerInput.responseBuilder.addDirective(
         {
@@ -20,13 +21,13 @@ const ShowAPL = function(handlerInput, playlist, item)
                     properties:
                     {
                         backgroundImage: item.getArtURL(),
-                        coverImageSource: item.getArtURL(),
+                        //coverImageSource: item.getArtURL(), //For now this is ugly :D
                         primaryText: item.Item.Name,
                         secondaryText: item.Item.AlbumArtist,
                         audioSources: {
                             url: item.getStreamURL(),
                             offset: item.Playback.Offset,
-                            duration: item.Playback.Runtime 
+                            duration: item.Playback.Runtime
                         }
                     }
                 }
@@ -41,8 +42,11 @@ const ShowAPL = function(handlerInput, playlist, item)
     return false;
 }
 
-const PlayItem = function(handlerInput, playlist, item)
-{
+/*********************************************************************************
+ * Player Functions
+ */
+
+const PlayItem = function (handlerInput, playlist, item) {
     if (!item || !item.Playback.Token) return false;
 
     ShowAPL(handlerInput, playlist, item);
@@ -50,62 +54,19 @@ const PlayItem = function(handlerInput, playlist, item)
     return true;
 };
 
+/*********************************************************************************
+ * No Queue Support for current APL Player
+ */
 
-/*
-    I FAILED TO GET THIS TO WORK SO FOR NOW JUST REFRESH
-    if (!ShowAPL(handlerInput, playlist, item))
-        return true;
-
-    Logger.Debug(`[Device ${playlist.Id}]`, "Updating APL Audioplayer");
-
-    handlerInput.responseBuilder.addDirective(
-        {
-            type: "Alexa.Presentation.APL.ExecuteCommands",
-            token: "musicToken", 
-            commands: [
-                {
-                    "type": "SetValue",
-                    "componentId": "Audio_PrimaryText",
-                    "property": "text",
-                    "value": item.Item.Name
-                },
-                {
-                    "type": "SetValue",
-                    "componentId": "Audio_SecondaryText",
-                    "property": "text",
-                    "value": item.Item.AlbumArtist
-                },
-                {
-                    "type": "PlayMedia",
-                    "componentId": "videoPlayer",
-                    "source": item.getStreamURL(),
-                    "audioTrack": "background"
-                },
-                {
-                    "type": "ControlMedia",
-                    "componentId": "videoPlayer",
-                    "command": "seek",
-                    "value": item.Playback.Offset 
-                },
-                {
-                    "type": "ControlMedia",
-                    "componentId": "videoPlayer",
-                    "command": "play"
-                }
-            ]
-        }
-    );
-
-    return true;
-};*/
-
-const EnqueueItem = function(handlerInput, playlist, item)
-{
+const EnqueueItem = function (handlerInput, playlist, item) {
     return false;
 };
 
-const StopPlayback = function(handlerInput)
-{
+/*********************************************************************************
+ * Stop Playback
+ */
+
+const StopPlayback = function (handlerInput) {
     handlerInput.responseBuilder.addDirective(
         {
             type: 'Alexa.Presentation.APL.ExecuteCommands',
@@ -123,12 +84,19 @@ const StopPlayback = function(handlerInput)
     return true;
 };
 
-const EndSession = function(handlerInput, playlist)
-{
+/*********************************************************************************
+ * End Session
+ */
+
+const EndSession = function (handlerInput, playlist) {
     playlist.APLOpen = false;
 
     return true;
 };
+
+/*********************************************************************************
+ * Exports
+ */
 
 module.exports = {
     PlayItem,

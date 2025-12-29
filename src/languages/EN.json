@@ -3,59 +3,40 @@
     "SONG_NOTFOUND_BY_NAME": "I didn't find a song called %song_name%.",
     "SONG_NOTFOUND_BY_NAME_AND_ARTIST": "I didn't find a song called %song_name% by %artist_name%.",
     "SONG_NOTFOUND_SUGGEST": "I didn't find a track called %song_name% by %artist_name%, you might have meant %suggestion_name% by %suggestion_artist%.",
-    
     "SONG_PLAYING": "Playing %song_name%, on %skill_name%.",
     "SONG_PLAYING_BY_ARTIST": "Playing %song_name% by %artist_name%, on %skill_name%.",
     "SONG_QUEUED": "Added %song_name% to the queue.",
     "SONG_QUEUED_BY_ARTIST": "Added %song_name% by %artist_name% to the queue.",
-
-
-
     "ALBUM_NO_NAME": "I didn't catch the album name.",
     "ALBUM_NOTFOUND_BY_NAME": "I didn't find an album called %album_name%",
     "ALBUM_NOTFOUND_SUGGEST": "I didn't find an album called %album_name% by %artist_name%, you might have meant %suggestion_name% by %suggestion_artist%.",
     "ALBUM_NOTFOUND_BY_NAME_AND_ARTIST": "I didn't find an album called %album_name% by %artist_name%.",
     "ALBUM_NO_MUSIC": "I didn't find any music in the album %album_name%.",
-
     "ALBUM_PLAYING": "Playing album %album_name%, on %skill_name%.",
     "ALBUM_PLAYING_BY_ARTIST": "Playing album %album_name% by %artist_name%, on %skill_name%.",
     "ALBUM_SHUFFLE": "Shuffling album %album_name%, on %skill_name%.",
     "ALBUM_SHUFFLE_BY_ARTIST": "Shuffling album %album_name% by %artist_name%, on %skill_name%.",
     "ALBUM_QUEUED": "Added album %album_name% to the queue.",
     "ALBUM_QUEUED_BY_ARTIST": "Added album %album_name% by %artist_name% to the queue.",
-
-
-
     "ARTIST_NO_NAME": "I didn't catch the song name.",
     "ARTIST_NOTFOUND_BY_NAME": "I didn't find an artist called %artist_name%.",
     "ARTIST_NO_MUSIC": "I didn't find any music by the artist %artist_name%.",
-
     "ARTIST_PLAYING": "Playing songs by artist %artist_name%, on %skill_name%.",
     "ARTIST_SHUFFLE": "Shuffling songs by artist %artist_name%, on %skill_name%.",
     "ARTIST_QUEUED": "Added %count% songs by artist %artist_name% to the queue.",
-
-
-
     "GENRE_NO_NAME": "I didn't catch the genre of music.",
     "GENRE_NOTFOUND_BY_NAME": "I didn't find a genre called %genre_name%.",
     "GENRE_NO_MUSIC": "No songs of %genre_name% where found.",
-
-    "GENRE_PLAYING": "Playing %grene_name%, on %skill_name%.",
-    "GENRE_PLAYING_SIMULAR": "Playing %grene_name% and simular genres, on %skill_name%.",
-    "GENRE_SHUFFLE": "Shuffling %grene_name%, on %skill_name%.",
-    "GENRE_SHUFFLE_SIMULAR": "Shuffling %grene_name% and simular genres, on %skill_name%.",
+    "GENRE_PLAYING": "Playing %genre_name%, on %skill_name%.",
+    "GENRE_PLAYING_SIMULAR": "Playing %genre_name% and simular genres, on %skill_name%.",
+    "GENRE_SHUFFLE": "Shuffling %genre_name%, on %skill_name%.",
+    "GENRE_SHUFFLE_SIMULAR": "Shuffling %genre_name% and simular genres, on %skill_name%.",
     "GENRE_QUEUED": "Added %count% %genre_name% songs to the queue.",
     "GENRE_QUEUED_SIMULAR": "Added %count% %genre_name% and simular songs to the queue.",
-
-
-
     "PLAYLIST_NO_NAME": "I didn't catch the playlist name.",
     "PLAYLIST_NOTFOUND_BY_NAME": "I didn't find a playlist called %playlist_name%.",
     "PLAYLIST_NO_MUSIC": "I didn't find any music in the playlist %playlist_name%.",
-
-
     "PLAYLIST_PLAYING": "Playing songs from playlist %playlist_name%, on %skill_name%.",
     "PLAYLIST_SHUFFLE": "Shuffling songs from playlist %playlist_name%, on %skill_name%.",
     "PLAYLIST_QUEUED": "Added %count% songs from playlist %playlist_name%, to the queue."
-
 }

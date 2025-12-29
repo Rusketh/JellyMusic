@@ -10,12 +10,11 @@ const fs = require("fs");
  * Device Playlists
  */
 
-const devices = { };
+const devices = {};
 
 const All = () => Object.values(devices);
 
-const getPlayList = function(device)
-{
+const getPlayList = function (device) {
     if (devices[device]) return devices[device];
 
     const playlist = PlayList.new(device);
@@ -31,8 +30,7 @@ const getPlayList = function(device)
  * 
  */
 
-const onLaunch = function(handlerInput)
-{
+const onLaunch = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -48,8 +46,7 @@ const onLaunch = function(handlerInput)
  * 
  */
 
-const onPlaybackNearlyFinished = function(handlerInput)
-{
+const onPlaybackNearlyFinished = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -72,16 +69,18 @@ const onPlaybackNearlyFinished = function(handlerInput)
  * 
  */
 
-const onQueueFinished = function(handlerInput, speak)
-{
+const onQueueFinished = function (handlerInput, speak) {
     const { responseBuilder } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
 
     Logger.Debug(`[Device ${playlist.Id}]`, "Playback queue finished!");
 
-    if (speak)
-    {
+    if (speak) {
         const speech = "There are no more songs left in the queue.";
-        
+
         return responseBuilder.speak(speech).getResponse();
     }
 
@@ -92,8 +91,7 @@ const onQueueFinished = function(handlerInput, speak)
  * 
  */
 
-const onPlaybackFailed = function(handlerInput)
-{
+const onPlaybackFailed = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -104,8 +102,7 @@ const onPlaybackFailed = function(handlerInput)
 
     var item = playlist.getCurrentItem();
 
-    if (!Player.PlayItem(handlerInput, playlist, item))
-    {
+    if (!Player.PlayItem(handlerInput, playlist, item)) {
         Logger.Debug(`[Device ${playlist.Id}]`, "Moving to next song.");
 
         item = playlist.getNextItem();
@@ -123,8 +120,7 @@ const onPlaybackFailed = function(handlerInput)
  * 
  */
 
-const onPlaybackStarted = function(handlerInput)
-{
+const onPlaybackStarted = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -142,8 +138,7 @@ const onPlaybackStarted = function(handlerInput)
  * 
  */
 
-const onPlaybackFinished = function(handlerInput)
-{
+const onPlaybackFinished = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -171,8 +166,7 @@ const onPlaybackFinished = function(handlerInput)
  * 
  */
 
-const onPlaybackStopped = function(handlerInput)
-{
+const onPlaybackStopped = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -190,8 +184,7 @@ const onPlaybackStopped = function(handlerInput)
  * 
  */
 
-const doClear = function(handlerInput)
-{
+const doClear = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -209,8 +202,7 @@ const doClear = function(handlerInput)
  * 
  */
 
-const doPause = function(handlerInput, offset)
-{
+const doPause = function (handlerInput, offset) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -218,7 +210,7 @@ const doPause = function(handlerInput, offset)
     const playlist = getPlayList(deviceID);
 
     playlist.pause(offset || requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
-    
+
     Logger.Info(`[Device ${playlist.Id}]`, "Playback Paused.");
 
     Player.StopPlayback(handlerInput);
@@ -230,8 +222,7 @@ const doPause = function(handlerInput, offset)
  * 
  */
 
-const doResume = function(handlerInput)
-{
+const doResume = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -252,10 +243,9 @@ const doResume = function(handlerInput)
  * 
  */
 
-const doStop = function(handlerInput)
-{
+const doStop = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
-    
+
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
@@ -274,8 +264,7 @@ const doStop = function(handlerInput)
  * 
  */
 
-const doPlayCurrent = function(handlerInput)
-{
+const doPlayCurrent = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -296,8 +285,7 @@ const doPlayCurrent = function(handlerInput)
  * 
  */
 
-const doPlayNext = function(handlerInput)
-{
+const doPlayNext = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -323,8 +311,7 @@ const doPlayNext = function(handlerInput)
  * 
  */
 
-const doPlayPrevious = function(handlerInput)
-{
+const doPlayPrevious = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -350,10 +337,9 @@ const doPlayPrevious = function(handlerInput)
  * End the session
  */
 
-const doSessionEnded = function(handlerInput)
-{
+const doSessionEnded = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
-    
+
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);

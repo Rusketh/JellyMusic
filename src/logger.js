@@ -19,11 +19,10 @@ const Outputs = {
 };
 
 /*********************************************************************************
- * 
+ * Logger Function
  */
 
-const Log = function(level = -1, ...args)
-{
+const Log = function (level = -1, ...args) {
     //Check Logging Option.
     if (level > CONFIG.log_level || level > LOGLEVEL_DEBUG)
         return;
@@ -32,7 +31,7 @@ const Log = function(level = -1, ...args)
     Outputs[level](...args);
 
     //Future option: Log out errors.txt 
-}; 
+};
 
 /*********************************************************************************
  * Logger Wrappers for quicknes

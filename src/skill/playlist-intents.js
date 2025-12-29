@@ -1,4 +1,4 @@
-const {limit} = CONFIG.jellyfin;
+const { limit } = CONFIG.jellyfin;
 
 const Alexa = require('ask-sdk-core');
 
@@ -14,50 +14,45 @@ const { CreateQueueIntent } = require("./alexa-helper.js");
  * Process Intent: Get Arist Intent
  */
 
-const Processer = async function(handlerInput, action = "play", buildQueue, submit) 
-{
+const Processer = async function (handlerInput, action = "play", buildQueue, submit) {
     const { requestEnvelope } = handlerInput;
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (!slots.playlistname || !slots.playlistname.value)
-    {
+    if (!slots.playlistname || !slots.playlistname.value) {
         const speech = LANGUAGE.Value("PLAYLIST_NO_NAME");
 
-        return [{status: false, speech}];
+        return [{ status: false, speech }];
     }
 
-    const playlists = await JellyFin.Playlists.FuzzySearch(slots.playlistname.value);
-        
-    if (!playlists.status || !playlists.items[0])
-    {
-        const speech = LANGUAGE.Parse("PLAYLIST_NOTFOUND_BY_NAME", {playlist_name: slots.playlistname.value});
+    const playlists = await JellyFin.Playlists({ query: slots.playlistname.value });
 
-        return [{status: false, speech}];
+    if (!playlists.status || !playlists.items[0]) {
+        const speech = LANGUAGE.Parse("PLAYLIST_NOTFOUND_BY_NAME", { playlist_name: slots.playlistname.value });
+
+        return [{ status: false, speech }];
     }
 
     const playlist = playlists.items[0];
 
-    const songs = await JellyFin.Music({parentId: playlist.Id, limit});
+    const songs = await JellyFin.Music({ parent: playlist.Id });
 
-    if (!songs.status || !songs.items[0])
-    {
-        const speech = LANGUAGE.Parse("PLAYLIST_NO_MUSIC", {playlist_name: slots.playlistname.value});
+    if (!songs.status || !songs.items[0]) {
+        const speech = LANGUAGE.Parse("PLAYLIST_NO_MUSIC", { playlist_name: slots.playlistname.value });
 
-        return [{status: false, speech}];
+        return [{ status: false, speech }];
     }
 
-    const then = async function(data)
-    {
+    const then = async function (data) {
         if (buildQueue)
             for (let i = songs.index + limit; i < songs.count; i += limit)
-                buildQueue(handlerInput, await JellyFin.Music({parentId: playlist.Id, limit, startIndex: i}), data);
-        
+                buildQueue(handlerInput, await JellyFin.Music({ parent: playlist.Id }, i), data);
+
         if (submit)
             return await submit(handlerInput, data);
     };
 
-    return [{status: true, playlist, items: songs.items}, then];
+    return [{ status: true, playlist, items: songs.items }, then];
 };
 
 /*********************************************************************************
@@ -66,8 +61,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
 const PlayPlaylistIntent = CreateQueueIntent(
     "PlayPlaylistIntent", "play", Processer,
-    function (handlerInput, {playlist, items}, data)
-    {
+    function (handlerInput, { playlist, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -85,12 +79,11 @@ const PlayPlaylistIntent = CreateQueueIntent(
 
         Logger.Info(`[Device ${_playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        const speech = LANGUAGE.Parse("PLAYLIST_PLAYING", {playlist_name: playlist.Name});
+        const speech = LANGUAGE.Parse("PLAYLIST_PLAYING", { playlist_name: playlist.Name });
 
         return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -109,8 +102,7 @@ const PlayPlaylistIntent = CreateQueueIntent(
 
 const ShufflePlaylistIntent = CreateQueueIntent(
     "ShufflePlaylistIntent", "shuffling", Processer,
-    function (handlerInput, {playlist, items}, data)
-    {
+    function (handlerInput, { playlist, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -118,7 +110,7 @@ const ShufflePlaylistIntent = CreateQueueIntent(
         const _playlist = Devices.getPlayList(deviceID);
 
         _playlist.clear();
-        
+
         items = _playlist.shuffleItems(items);
 
         [data.first, data.last] = _playlist.prefixItems(items);
@@ -130,12 +122,11 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
         Logger.Info(`[Device ${_playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name});
-        
+        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", { playlist_name: playlist.Name });
+
         return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -146,8 +137,7 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
         data.last = last;
     },
-    function({ requestEnvelope }, {first, last})
-    {
+    function ({ requestEnvelope }, { first, last }) {
         const deviceID = Alexa.getDeviceId(requestEnvelope);
 
         const playlist = Devices.getPlayList(deviceID);
@@ -162,8 +152,7 @@ const ShufflePlaylistIntent = CreateQueueIntent(
 
 const QueuePlaylistIntent = CreateQueueIntent(
     "QueuePlaylistIntent", "queue", Processer,
-    function (handlerInput, {playlist, items, count}, data)
-    {
+    function (handlerInput, { playlist, items, count }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -177,12 +166,11 @@ const QueuePlaylistIntent = CreateQueueIntent(
         if (Player.PlayItem(handlerInput, _playlist, item))
             Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", {playlist_name: playlist.Name, count});
+        const speech = LANGUAGE.Parse("PLAYLIST_SHUFFLE", { playlist_name: playlist.Name, count });
 
         return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
