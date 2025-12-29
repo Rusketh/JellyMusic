@@ -133,7 +133,7 @@ const PlaySongIntent = CreateQueueIntent(
             speech = LANGUAGE.Parse("SONG_PLAYING_BY_ARTIST",
                 {
                     song_name: items[0].Name,
-                    song_artist: items[0].AlbumArtist
+                    artist_name: items[0].AlbumArtist
                 }
             );
 
@@ -167,7 +167,7 @@ const QueueSongIntent = CreateQueueIntent(
             speech = LANGUAGE.Parse("SONG_QUEUED_BY_ARTIST",
                 {
                     song_name: items[0].Name,
-                    song_artist: items[0].AlbumArtist
+                    artist_name: items[0].AlbumArtist
                 }
             );
 

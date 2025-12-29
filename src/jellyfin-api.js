@@ -1,5 +1,7 @@
 const https = require('https');
 
+const fuzzball = require('fuzzball');
+
 /*********************************************************************************
  * API Request
  */
@@ -30,6 +32,7 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
     if (genres) url.searchParams.append("genreIds", genres.join(","));
     if (parent) url.searchParams.append("parentId", parent);
 
+    //isFavorite
     Logger.Debug("[JellyFin API]", `Requesting ${url.pathname} with ${url.searchParams.toString()}.`);
 
     try {
@@ -50,7 +53,7 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
         if (error.name == "SyntaxError")
             Logger.Error("[JellyFin API]", `Failed to parse response from Server (path: ${url.pathname}).`);
         else
-            Logger.Error("[JellyFin API]", `Failed to parse response from Server (path: ${url.pathname}).`);
+            Logger.Error("[JellyFin API]", `Error getting response from Server (path: ${url.pathname}).`, error);
 
         return { status: false };
     }
@@ -106,6 +109,48 @@ const Playlists = async function (query, startIndex, limit) {
 };
 
 /*********************************************************************************
+ * Query Users
+ */
+
+const Users = async function (query) {
+    const url = new URL("/Users", CONFIG.jellyfin.local);
+
+    const response = await fetch(url, RequestOptions);
+
+    if (!response.ok) {
+        Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}).`);
+        return { status: false };
+    }
+
+    try {
+        var users = await response.json();
+
+        if (query) {
+            users.forEach(user => user.score = fuzzball.token_sort_ratio(query, user.Name));
+            users = users.filter((user) => user.score > 60);
+            users.sort((a, b) => b.score - a.score);
+        }
+
+        return { status: true, users };
+    }
+    catch (error) {
+        Logger.Error("[JellyFin API]", `Error getting response from Server (path: ${url.pathname}).`, error);
+        return { status: false };
+    }
+};
+
+const Favourites = async function (userID, startIndex, limit) {
+    const url = new URL(`/Users/${userID}/Items`, CONFIG.jellyfin.local);
+
+    url.searchParams.append("isFavorite", true);
+    url.searchParams.append("Recursive", true);
+    url.searchParams.append("includeItemTypes", "Audio");
+    url.searchParams.append("fields", "Id,Name,RunTimeTicks,Artists,Album,AlbumId,PrimaryImageTag,IndexNumber,Genres");
+
+    return await MakeAPIRequest(url, {}, startIndex, limit);
+};
+
+/*********************************************************************************
  * Exports
  */
 
@@ -114,5 +159,7 @@ module.exports = {
     Artists,
     Albums,
     MusicGenres,
-    Playlists
+    Playlists,
+    Users,
+    Favourites
 };

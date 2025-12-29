@@ -38,5 +38,11 @@
     "PLAYLIST_NO_MUSIC": "I didn't find any music in the playlist %playlist_name%.",
     "PLAYLIST_PLAYING": "Playing songs from playlist %playlist_name%, on %skill_name%.",
     "PLAYLIST_SHUFFLE": "Shuffling songs from playlist %playlist_name%, on %skill_name%.",
-    "PLAYLIST_QUEUED": "Added %count% songs from playlist %playlist_name%, to the queue."
+    "PLAYLIST_QUEUED": "Added %count% songs from playlist %playlist_name%, to the queue.",
+    "FAVOURITES_PLAYING": "Playing %user_name%'s favourites, on %skill_name%.",
+    "FAVOURITES_SHUFFLE": "Shuffling %user_name%'s favourites, on %skill_name%.",
+    "FAVOURITES_QUEUED": "Added %count% songs from %user_name%'s favourites, to the queue.",
+    "QUERY_SONGNAME": "The current song is %song_name% by %artist_name%.",
+    "QUERY_NO_SONG": "There is currently no song playing.",
+    "END_OF_QUEUE": "There are no more songs left in the queue."
 }

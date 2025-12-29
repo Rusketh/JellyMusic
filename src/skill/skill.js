@@ -18,6 +18,8 @@ const SongIntents = require("./song-intents.js");
 
 const PlaylistIntents = require("./playlist-intents.js");
 
+const FavouriteIntents = require("./favourite-intents.js");
+
 const GenreIntents = require("./genre-intent.js");
 
 const QueryIntents = require("./query-intents.js");
@@ -28,9 +30,8 @@ const QueryIntents = require("./query-intents.js");
 
 const ErrorHandler = {
     canHandle: () => true,
-    handle: function (handlerInput, error)
-    {
-        const {responseBuilder, requestEnvelope} = handlerInput;
+    handle: function (handlerInput, error) {
+        const { responseBuilder, requestEnvelope } = handlerInput;
 
         if (!error && requestEnvelope.request)
             error = requestEnvelope.request.error;
@@ -38,8 +39,7 @@ const ErrorHandler = {
         const type = Alexa.getRequestType(handlerInput.requestEnvelope);
         Logger.Error(`Error handled: ${type}`);
 
-        if (type == "IntentRequest")
-        {
+        if (type == "IntentRequest") {
             const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
             Logger.Error(`Intent: ${intent}`);
         }
@@ -100,8 +100,11 @@ const skill = Alexa.SkillBuilders.custom()
         SongIntents.QueueSongIntent,
         GenreIntents.QueueGenreIntent,
 
-        QueryIntents.WhatThisIntent,
-        ErrorHandler //This is for debugging, since not all errors are passed into addErrorHandlers(ErrorHandler)
+        FavouriteIntents.PlayFavouritesIntent,
+        FavouriteIntents.ShuffleFavouritesIntent,
+        FavouriteIntents.QueueFavouritesIntent,
+
+        QueryIntents.WhatThisIntent
     ).addErrorHandlers(
         ErrorHandler
     ).withSkillId(CONFIG.skill.id).create();

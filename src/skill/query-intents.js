@@ -10,21 +10,25 @@ const { CreateIntent } = require("./alexa-helper.js");
 
 const WhatThisIntent = CreateIntent(
     "WhatThisIntent",
-    function(handlerInput)
-    {
+    function (handlerInput) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
-        
+
         const playlist = Devices.getPlayList(deviceID);
-        
+
         const item = playlist.getCurrentItem();
 
-        var speech = "There is currently no song playing.";
+        var speech = LANGUAGE.Value("QUERY_NO_SONG");
 
         if (item)
-            speech = `The current song is ${item.Item.Name} by ${item.Item.AlbumArtist}`;
-        
+            speech = LANGUAGE.Parse("QUERY_SONGNAME",
+                {
+                    song_name: item.Item.Name,
+                    artist_name: item.Item.AlbumArtist
+                }
+            );
+
         return responseBuilder.speak(speech).getResponse();
     }
 );

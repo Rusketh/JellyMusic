@@ -70,7 +70,7 @@ const onPlaybackNearlyFinished = function (handlerInput) {
  */
 
 const onQueueFinished = function (handlerInput, speak) {
-    const { responseBuilder } = handlerInput;
+    const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
@@ -79,7 +79,7 @@ const onQueueFinished = function (handlerInput, speak) {
     Logger.Debug(`[Device ${playlist.Id}]`, "Playback queue finished!");
 
     if (speak) {
-        const speech = "There are no more songs left in the queue.";
+        const speech = LANGUAGE.Value("END_OF_QUEUE");
 
         return responseBuilder.speak(speech).getResponse();
     }

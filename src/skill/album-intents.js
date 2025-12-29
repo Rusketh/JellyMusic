@@ -22,7 +22,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
     if (!slots.albumname || !slots.albumname.value) {
         const speech = LANGUAGE.Value("ALBUM_NO_NAME");
 
-        return [{ status: false, speach1 }];
+        return [{ status: false, speech }];
     }
 
     Logger.Debug(`[Album Request]`, `Requested album ${slots.albumname.value}`);

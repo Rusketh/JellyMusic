@@ -4,6 +4,23 @@
             "invocationName": "jelly music",
             "intents": [
                 {
+                    "name": "PlayFavouritesIntent",
+                    "slots": [
+                        {
+                            "name": "username",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "play favourites for {username}",
+                        "from {username} play favourites",
+                        "play {username}  favourite tracks",
+                        "play {username}  favourite songs",
+                        "play {username}  favourite music",
+                        "play {username}  favourites"
+                    ]
+                },
+                {
                     "name": "AMAZON.CancelIntent",
                     "samples": []
                 },
@@ -271,6 +288,45 @@
                         "add songs by {artistname} to the queue",
                         "queue artist {artistname}",
                         "queue songs by {artistname}"
+                    ]
+                },
+                {
+                    "name": "ShuffleFavouritesIntent",
+                    "slots": [
+                        {
+                            "name": "username",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle favourites for {username}",
+                        "from {username} shuffle favourites",
+                        "shuffle {username}  favourite tracks",
+                        "shuffle {username}  favourite songs",
+                        "shuffle {username}  favourite music",
+                        "shuffle {username}  favourites"
+                    ]
+                },
+                {
+                    "name": "QueueFavouritesIntent",
+                    "slots": [
+                        {
+                            "name": "username",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "queue favourites for {username}",
+                        "from {username} queue favourites",
+                        "queue {username}  favourite tracks",
+                        "queue {username}  favourite songs",
+                        "queue {username}  favourite music",
+                        "queue {username}  favourites",
+                        "add favourites for {username} to the queue",
+                        "add {username}  favourite tracks to the queue",
+                        "add {username}  favourite songs to the queue",
+                        "add {username}  favourite music to the queue",
+                        "add {username}  favourites to the queue"
                     ]
                 }
             ],
