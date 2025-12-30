@@ -23,7 +23,16 @@ if (CONFIG.language != "EN")
  * Get Value
  */
 
-const Value = (key) => Language[key] || "Unkown response";
+//const Value = (key) => Language[key] || "Unkown response";
+
+const Value = function(key)
+{
+    if (Language[key])
+        return Language[key];
+
+    Logger.Warn(`Missing language key: ${key}`);
+    return "Unkown response";
+}
 
 /******************************************************************************************
  * Parse

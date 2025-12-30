@@ -152,7 +152,7 @@ const onPlaybackFinished = function (handlerInput) {
     if (!playlist.nextItem())
         return onQueueFinished(handlerInput);
 
-    const item = playlist.getNextItem();
+    const item = playlist.getCurrentItem();
 
     if (!Player.PlayItem(handlerInput, playlist, item))
         return responseBuilder.getResponse();

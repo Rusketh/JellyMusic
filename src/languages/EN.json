@@ -39,6 +39,8 @@
     "PLAYLIST_PLAYING": "Playing songs from playlist %playlist_name%, on %skill_name%.",
     "PLAYLIST_SHUFFLE": "Shuffling songs from playlist %playlist_name%, on %skill_name%.",
     "PLAYLIST_QUEUED": "Added %count% songs from playlist %playlist_name%, to the queue.",
+    "NO_USERNAME": "I didn't catch the user name.",
+    "USER_NOTFOUND_BY_NAME": "I didn't find a user called %user_name%.",
     "FAVOURITES_PLAYING": "Playing %user_name%'s favourites, on %skill_name%.",
     "FAVOURITES_SHUFFLE": "Shuffling %user_name%'s favourites, on %skill_name%.",
     "FAVOURITES_QUEUED": "Added %count% songs from %user_name%'s favourites, to the queue.",

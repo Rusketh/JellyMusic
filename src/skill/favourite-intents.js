@@ -20,7 +20,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
     const slots = intent.slots;
 
     if (!slots.username || !slots.username.value) {
-        const speech = LANGUAGE.Value("USERNAME_NO_NAME");
+        const speech = LANGUAGE.Value("NO_USERNAME");
 
         return [{ status: false, speech }];
     }
@@ -29,7 +29,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
 
     const users = await JellyFin.Users(slots.username.value);
 
-    if (!users.status || !users.items[0]) {
+    if (!users.status || !users.users[0]) {
         Logger.Debug(`[Favourite Request]`, "No user found.");
 
         const speech = LANGUAGE.Parse("USER_NOTFOUND_BY_NAME", { username: slots.username.value });
@@ -37,7 +37,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
         return [{ status: false, speech }];
     }
 
-    const user = users.items[0];
+    const user = users.users[0];
 
     const favourites = await JellyFin.Favourites(user.Id);
 

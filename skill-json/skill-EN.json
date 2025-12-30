@@ -4,56 +4,12 @@
             "invocationName": "jelly music",
             "intents": [
                 {
-                    "name": "PlayFavouritesIntent",
-                    "slots": [
-                        {
-                            "name": "username",
-                            "type": "AMAZON.FirstName"
-                        }
-                    ],
-                    "samples": [
-                        "play favourites for {username}",
-                        "from {username} play favourites",
-                        "play {username}  favourite tracks",
-                        "play {username}  favourite songs",
-                        "play {username}  favourite music",
-                        "play {username}  favourites"
-                    ]
-                },
-                {
                     "name": "AMAZON.CancelIntent",
-                    "samples": []
-                },
-                {
-                    "name": "AMAZON.HelpIntent",
                     "samples": []
                 },
                 {
                     "name": "AMAZON.StopIntent",
                     "samples": []
-                },
-                {
-                    "name": "AMAZON.NavigateHomeIntent",
-                    "samples": []
-                },
-                {
-                    "name": "PlayAlbumIntent",
-                    "slots": [
-                        {
-                            "name": "albumname",
-                            "type": "AMAZON.MusicAlbum"
-                        },
-                        {
-                            "name": "artistname",
-                            "type": "AMAZON.Musician"
-                        }
-                    ],
-                    "samples": [
-                        "play the album {albumname} by {artistname}",
-                        "play the album {albumname}",
-                        "play album {albumname} by {artistname} ",
-                        "play album {albumname} "
-                    ]
                 },
                 {
                     "name": "AMAZON.PauseIntent",
@@ -72,6 +28,58 @@
                     "samples": []
                 },
                 {
+                    "name": "PlayFavouritesIntent",
+                    "slots": [
+                        {
+                            "name": "username",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "play favourites for {username}",
+                        "play favorites for {username}",
+                        "from {username} play favourites",
+                        "play {username} favourite tracks",
+                        "play {username} favourite songs",
+                        "play {username} favourite music",
+                        "play {username} favourites",
+                        "put on {username} favourites",
+                        "listen to {username} favourites",
+                        "start {username} favourites",
+                        "play the favourites list for {username}",
+                        "play {username} top tracks",
+                        "play {username} liked songs",
+                        "put on the favorites for {username}"
+                    ]
+                },
+                {
+                    "name": "PlayAlbumIntent",
+                    "slots": [
+                        {
+                            "name": "albumname",
+                            "type": "AMAZON.MusicAlbum"
+                        },
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "play the album {albumname} by {artistname}",
+                        "play the album {albumname}",
+                        "play album {albumname} by {artistname}",
+                        "play album {albumname}",
+                        "put on the album {albumname}",
+                        "I want to listen to the album {albumname}",
+                        "start the album {albumname}",
+                        "spin the album {albumname}",
+                        "play the record {albumname}",
+                        "play the full album {albumname}",
+                        "listen to the album {albumname} by {artistname}",
+                        "can you play the album {albumname}"
+                    ]
+                },
+                {
                     "name": "PlayArtistIntent",
                     "slots": [
                         {
@@ -81,7 +89,18 @@
                     ],
                     "samples": [
                         "play songs by {artistname}",
-                        "play artist {artistname}"
+                        "play artist {artistname}",
+                        "play music by {artistname}",
+                        "put on {artistname}",
+                        "I want to hear {artistname}",
+                        "listen to {artistname}",
+                        "play {artistname}",
+                        "start playing {artistname}",
+                        "put on some {artistname}",
+                        "give me some {artistname}",
+                        "play a mix of {artistname}",
+                        "shuffle music by {artistname}",
+                        "put on music from {artistname}"
                     ]
                 },
                 {
@@ -100,7 +119,14 @@
                         "play song {songname} by {artistname}",
                         "play {songname} by {artistname}",
                         "play {songname}",
-                        "play song {songname}"
+                        "play the song {songname}",
+                        "play the track {songname}",
+                        "put on the song {songname}",
+                        "I want to hear the song {songname}",
+                        "play the track {songname} by {artistname}",
+                        "put on {songname} by {artistname}",
+                        "start the song {songname}",
+                        "let me hear {songname}"
                     ]
                 },
                 {
@@ -112,7 +138,33 @@
                         }
                     ],
                     "samples": [
-                        "play playlist {playlistname}"
+                        "play playlist {playlistname}",
+                        "start playlist {playlistname}",
+                        "load playlist {playlistname}",
+                        "put on my {playlistname} playlist",
+                        "play the {playlistname} playlist",
+                        "listen to playlist {playlistname}",
+                        "queue up playlist {playlistname}",
+                        "play my playlist called {playlistname}",
+                        "start the {playlistname} playlist"
+                    ]
+                },
+                {
+                    "name": "PlayGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "play {genre} music",
+                        "play genre {genre}",
+                        "play some {genre}",
+                        "put on some {genre} music",
+                        "start playing {genre}",
+                        "I feel like listening to {genre}",
+                        "play me some {genre}"
                     ]
                 },
                 {
@@ -131,7 +183,80 @@
                         "shuffle the album {albumname}",
                         "shuffle the album {albumname} by {artistname}",
                         "shuffle album {albumname} by {artistname}",
-                        "shuffle album {albumname}"
+                        "shuffle album {albumname}",
+                        "play album {albumname} on shuffle",
+                        "mix the album {albumname}",
+                        "play the album {albumname} shuffled"
+                    ]
+                },
+                {
+                    "name": "ShuffleArtistIntent",
+                    "slots": [
+                        {
+                            "name": "artistname",
+                            "type": "AMAZON.Musician"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle artist {artistname}",
+                        "shuffle songs by {artistname}",
+                        "play {artistname} on shuffle",
+                        "mix up songs by {artistname}",
+                        "play a random mix of {artistname}",
+                        "shuffle music from {artistname}",
+                        "play random songs by {artistname}"
+                    ]
+                },
+                {
+                    "name": "ShufflePlaylistIntent",
+                    "slots": [
+                        {
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle playlist {playlistname}",
+                        "play playlist {playlistname} on shuffle",
+                        "mix up playlist {playlistname}",
+                        "shuffle the {playlistname} playlist",
+                        "play my {playlistname} playlist on shuffle"
+                    ]
+                },
+                {
+                    "name": "ShuffleGenreIntent",
+                    "slots": [
+                        {
+                            "name": "genre",
+                            "type": "AMAZON.Genre"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle {genre} music",
+                        "shuffle genre {genre}",
+                        "play {genre} on shuffle",
+                        "play random {genre} songs",
+                        "mix up some {genre}"
+                    ]
+                },
+                {
+                    "name": "ShuffleFavouritesIntent",
+                    "slots": [
+                        {
+                            "name": "username",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "shuffle favourites for {username}",
+                        "from {username} shuffle favourites",
+                        "shuffle {username} favourite tracks",
+                        "shuffle {username} favourite songs",
+                        "shuffle {username} favourites",
+                        "play {username} favourites on shuffle",
+                        "shuffle {username} liked songs",
+                        "mix up {username} favourites",
+                        "play {username} top songs shuffled"
                     ]
                 },
                 {
@@ -154,11 +279,14 @@
                         "queue the album {albumname} by {artistname}",
                         "queue album {albumname} by {artistname}",
                         "queue album {albumname}",
-                        "queue the album {albumname}"
+                        "queue the album {albumname}",
+                        "play album {albumname} next",
+                        "put album {albumname} in the queue",
+                        "add {albumname} to the up next list"
                     ]
                 },
                 {
-                    "name": "ShuffleArtistIntent",
+                    "name": "QueueArtistIntent",
                     "slots": [
                         {
                             "name": "artistname",
@@ -166,33 +294,13 @@
                         }
                     ],
                     "samples": [
-                        "shuffle artist {artistname}",
-                        "shuffle songs by {artistname}"
-                    ]
-                },
-                {
-                    "name": "ShufflePlaylistIntent",
-                    "slots": [
-                        {
-                            "name": "playlistname",
-                            "type": "AMAZON.SearchQuery"
-                        }
-                    ],
-                    "samples": [
-                        "shuffle playlist {playlistname}"
-                    ]
-                },
-                {
-                    "name": "QueuePlaylistIntent",
-                    "slots": [
-                        {
-                            "name": "playlistname",
-                            "type": "AMAZON.SearchQuery"
-                        }
-                    ],
-                    "samples": [
-                        "add playlist {playlistname} to the queue",
-                        "queue playlist {playlistname}"
+                        "add songs by {artistname} to the queue",
+                        "queue artist {artistname}",
+                        "queue songs by {artistname}",
+                        "play {artistname} next",
+                        "add {artistname} to the up next",
+                        "put {artistname} in the queue",
+                        "add music by {artistname} to the queue"
                     ]
                 },
                 {
@@ -215,29 +323,25 @@
                         "queue {songname}",
                         "queue song {songname}",
                         "queue {songname} by {artistname}",
-                        "queue song {songname} by {artistname}"
+                        "queue song {songname} by {artistname}",
+                        "play {songname} next",
+                        "put {songname} on the queue",
+                        "add the track {songname} to the queue"
                     ]
                 },
                 {
-                    "name": "ClearQueueIntent",
-                    "slots": [],
-                    "samples": [
-                        "clear queue",
-                        "empty the queue",
-                        "clear the queue"
-                    ]
-                },
-                {
-                    "name": "PlayGenreIntent",
+                    "name": "QueuePlaylistIntent",
                     "slots": [
                         {
-                            "name": "genre",
-                            "type": "AMAZON.Genre"
+                            "name": "playlistname",
+                            "type": "AMAZON.SearchQuery"
                         }
                     ],
                     "samples": [
-                        "play {genre} music",
-                        "play genre {genre}"
+                        "add playlist {playlistname} to the queue",
+                        "queue playlist {playlistname}",
+                        "add the {playlistname} playlist to the queue",
+                        "play playlist {playlistname} next"
                     ]
                 },
                 {
@@ -250,20 +354,45 @@
                     ],
                     "samples": [
                         "queue {genre} music",
-                        "queue genre {genre}"
+                        "queue genre {genre}",
+                        "add {genre} music to the queue",
+                        "play {genre} next"
                     ]
                 },
                 {
-                    "name": "ShuffleGenreIntent",
+                    "name": "QueueFavouritesIntent",
                     "slots": [
                         {
-                            "name": "genre",
-                            "type": "AMAZON.Genre"
+                            "name": "username",
+                            "type": "AMAZON.SearchQuery"
                         }
                     ],
                     "samples": [
-                        "shuffle {genre} music",
-                        "shuffle genre {genre}"
+                        "queue favourites for {username}",
+                        "from {username} queue favourites",
+                        "queue {username} favourite tracks",
+                        "queue {username} favourite songs",
+                        "queue {username} favourite music",
+                        "queue {username} favourites",
+                        "add favourites for {username} to the queue",
+                        "add {username} favourite tracks to the queue",
+                        "add {username} favourite songs to the queue",
+                        "add {username} favourite music to the queue",
+                        "add {username} favourites to the queue",
+                        "play {username} favourites next"
+                    ]
+                },
+                {
+                    "name": "ClearQueueIntent",
+                    "slots": [],
+                    "samples": [
+                        "clear queue",
+                        "empty the queue",
+                        "clear the queue",
+                        "clear up next",
+                        "wipe the queue",
+                        "delete the queue",
+                        "remove upcoming songs"
                     ]
                 },
                 {
@@ -273,61 +402,17 @@
                         "what is playing",
                         "what is this",
                         "what is the name of this song",
-                        "What is this song"
+                        "What is this song",
+                        "who is singing this",
+                        "what track is this",
+                        "identify this song",
+                        "who is this artist",
+                        "tell me what is playing"
                     ]
                 },
                 {
-                    "name": "QueueArtistIntent",
-                    "slots": [
-                        {
-                            "name": "artistname",
-                            "type": "AMAZON.Musician"
-                        }
-                    ],
-                    "samples": [
-                        "add songs by {artistname} to the queue",
-                        "queue artist {artistname}",
-                        "queue songs by {artistname}"
-                    ]
-                },
-                {
-                    "name": "ShuffleFavouritesIntent",
-                    "slots": [
-                        {
-                            "name": "username",
-                            "type": "AMAZON.FirstName"
-                        }
-                    ],
-                    "samples": [
-                        "shuffle favourites for {username}",
-                        "from {username} shuffle favourites",
-                        "shuffle {username}  favourite tracks",
-                        "shuffle {username}  favourite songs",
-                        "shuffle {username}  favourite music",
-                        "shuffle {username}  favourites"
-                    ]
-                },
-                {
-                    "name": "QueueFavouritesIntent",
-                    "slots": [
-                        {
-                            "name": "username",
-                            "type": "AMAZON.FirstName"
-                        }
-                    ],
-                    "samples": [
-                        "queue favourites for {username}",
-                        "from {username} queue favourites",
-                        "queue {username}  favourite tracks",
-                        "queue {username}  favourite songs",
-                        "queue {username}  favourite music",
-                        "queue {username}  favourites",
-                        "add favourites for {username} to the queue",
-                        "add {username}  favourite tracks to the queue",
-                        "add {username}  favourite songs to the queue",
-                        "add {username}  favourite music to the queue",
-                        "add {username}  favourites to the queue"
-                    ]
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
                 }
             ],
             "types": []

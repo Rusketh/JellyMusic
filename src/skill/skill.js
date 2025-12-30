@@ -25,25 +25,34 @@ const GenreIntents = require("./genre-intent.js");
 const QueryIntents = require("./query-intents.js");
 
 /*********************************************************************************
- * Error Handler
+ * Error Handlers
  */
+
+const Unhandler = {
+    canHandle: () => true,
+    handle: function (handlerInput) {
+        const { responseBuilder, requestEnvelope } = handlerInput;
+        const type = Alexa.getRequestType(requestEnvelope);
+        Logger.Warn(`[Alexa Skill] Unhandled request: ${type}`);
+        return responseBuilder.getResponse();
+    }
+};
+
+const ExceptionEncounteredHandler = {
+    canHandle: (handlerInput) => Alexa.getRequestType(handlerInput.requestEnvelope) === 'System.ExceptionEncountered',
+    handle: (handlerInput) => {
+        const { requestEnvelope, responseBuilder } = handlerInput;
+        const { cause, error } = requestEnvelope.request;
+        Logger.Error(`[Alexa Skill] Exception encountered: ${cause}`);
+        Logger.Error(error);
+        return responseBuilder.getResponse();
+    }
+};
 
 const ErrorHandler = {
     canHandle: () => true,
     handle: function (handlerInput, error) {
-        const { responseBuilder, requestEnvelope } = handlerInput;
-
-        if (!error && requestEnvelope.request)
-            error = requestEnvelope.request.error;
-
-        const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-        Logger.Error(`Error handled: ${type}`);
-
-        if (type == "IntentRequest") {
-            const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
-            Logger.Error(`Intent: ${intent}`);
-        }
-
+        Logger.Error(`[Alexa Skill] Error handled: ${error.message}`);
         Logger.Error(error);
 
         return responseBuilder.getResponse();
@@ -104,7 +113,9 @@ const skill = Alexa.SkillBuilders.custom()
         FavouriteIntents.ShuffleFavouritesIntent,
         FavouriteIntents.QueueFavouritesIntent,
 
-        QueryIntents.WhatThisIntent
+        QueryIntents.WhatThisIntent,
+        ExceptionEncounteredHandler,
+        Unhandler
     ).addErrorHandlers(
         ErrorHandler
     ).withSkillId(CONFIG.skill.id).create();

@@ -152,31 +152,6 @@ PlayList.getNextItem = function()
     return this.Queue[this.Position + 1];
 };
 
-/*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play a track
- */
-
-PlayList.getPlayDirective = function(handlerInput)
-{
-    const current = this.getCurrentItem();
-
-    if (!current) return null;
-
-    return current.getPlayDirective();
-};
-
-PlayList.getPlayNextDirective = function(handlerInput)
-{
-    const current = this.getCurrentItem();
-    const next = this.getNextItem();
-
-    if (!next) return null;
-
-    if (!current) return next.getPlayDirective();
-
-    return next.getPlayNextDirective(current.Playback);
-};
 
 PlayList.getPlayPreviousDirective = function(handlerInput)
 {
@@ -189,26 +164,6 @@ PlayList.getPlayPreviousDirective = function(handlerInput)
     
     return previous.getPlayNextDirective(current.Playback);
 };
-
-
-PlayList.Validate = function(directive, {attributesManager})
-{
-    var token = directive[2];
-    
-    if (!token) return true;
-
-    if (this.playbackToken && this.playbackToken == token)
-    {
-        Logger.Debug(`[Playlist ${this.Id}]`, "Existing playback token rejected.");
-        return false;
-    }
-
-    Logger.Debug(`[Playlist ${this.Id}]`, "New playback token consumed.");
-
-    this.playbackToken = token;
-    
-    return true;
-}
 
 /*********************************************************************************
  * Next & Previous
