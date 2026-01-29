@@ -15,7 +15,7 @@ PlayListItem.new = function(item, token)
         {
             Id: item.Id,
             Name: item.Name,
-            Album: item.Albu,
+            Album: item.Album,
             AlbumId: item.AlbumId,
             AlbumArtist: item.AlbumArtist,
             AlbumPrimaryImageTag: item.AlbumPrimaryImageTag
@@ -23,6 +23,7 @@ PlayListItem.new = function(item, token)
         Playback:
         {
             Token: token || crypto.randomUUID(),
+            Runtime: item.RunTimeTicks / 10000,
             IsPlaying: false,
             IsPaused: false,
             Offset: 0
@@ -37,10 +38,15 @@ PlayListItem.new = function(item, token)
 
 PlayListItem.getStreamURL = function()
 {
-    const url = new URL(`/Items/${this.Item.Id}/Download`, CONFIG.jellyfin.host);
+    const url = new URL(`/Audio/${this.Item.Id}/stream`, CONFIG.jellyfin.host);
 
     url.searchParams.append("api_key", String(CONFIG.jellyfin.key));
-    
+    url.searchParams.append("container", "mp3");
+    url.searchParams.append("audioCodec", "mp3");
+    url.searchParams.append("transcodingContainer", "mp3");
+    url.searchParams.append("transcodingProtocol", "http");
+    url.searchParams.append("maxStreamingBitrate", "192000");
+
     return url.toString();
 };
 
@@ -75,44 +81,6 @@ PlayListItem.getMetaData = function()
         object.art = new Alexa.ImageHelper().addImageInstance(this.getArtURL()).getImage();
     
     return object;
-};
-
-/*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play now
- */
-
-PlayListItem.getPlayDirective = function()
-{
-    console.debug(`getPlayDirective: ${this.Item.Name} -> ${this.Playback.Token}`);
-
-    return [
-        'REPLACE_ALL',
-        this.getStreamURL(),
-        this.Playback.Token,
-        this.Playback.Offset,
-        null,
-        this.getMetaData()
-    ];
-};
-
-/*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play now
- */
-
-PlayListItem.getPlayNextDirective = function({Token})
-{
-    console.debug(`getPlayNextDirective: ${this.Item.Name} -> ${this.Playback.Token}`);
-
-    return [
-        'ENQUEUE',
-        this.getStreamURL(),
-        this.Playback.Token,
-        this.Playback.Offset,
-        Token,
-        this.getMetaData()
-    ];
 };
 
 /*********************************************************************************

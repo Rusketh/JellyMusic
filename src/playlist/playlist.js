@@ -1,8 +1,12 @@
+const crypto = require("node:crypto");
+
 const PlayListItem = require("./item.js");
 
 /*********************************************************************************
  * Playlist Item
  */
+
+var id = 0;
 
 const PlayList = { };
 
@@ -12,7 +16,8 @@ PlayList.new = function(device)
         Device: device,
         Dirty: false,
         Position: 0,
-        Queue: [ ]
+        Queue: [ ],
+        Id: id++
     }, PlayList);
 };
 
@@ -147,31 +152,6 @@ PlayList.getNextItem = function()
     return this.Queue[this.Position + 1];
 };
 
-/*********************************************************************************
- * getPlayDirective
- * Gets the arguments for addAudioPlayerPlayDirective to play a track
- */
-
-PlayList.getPlayDirective = function(handlerInput)
-{
-    const current = this.getCurrentItem();
-
-    if (!current) return null;
-
-    return current.getPlayDirective();
-};
-
-PlayList.getPlayNextDirective = function(handlerInput)
-{
-    const current = this.getCurrentItem();
-    const next = this.getNextItem();
-
-    if (!next) return null;
-
-    if (!current) return next.getPlayDirective();
-
-    return next.getPlayNextDirective(current.Playback);
-};
 
 PlayList.getPlayPreviousDirective = function(handlerInput)
 {
@@ -185,32 +165,6 @@ PlayList.getPlayPreviousDirective = function(handlerInput)
     return previous.getPlayNextDirective(current.Playback);
 };
 
-
-PlayList.Validate = function(directive, {attributesManager})
-{
-    var token = directive[2];
-    /*let sessionAttributes = attributesManager.getSessionAttributes();
-
-    if (sessionAttributes.playbackToken == token) return false;
-
-    sessionAttributes.playbackToken = token;
-
-    attributesManager.setSessionAttributes(sessionAttributes);*/
-    
-    if (this.playbackToken && this.playbackToken == token)
-    {
-        console.log(`Repeating token: ${token}`);
-        return false;
-    }
-
-    console.log(`None repeating token: ${token}`);
-
-    this.playbackToken = token;
-    
-
-    return true;
-}
-
 /*********************************************************************************
  * Next & Previous
  */
@@ -221,11 +175,11 @@ PlayList.nextItem = function()
 
     if (index >= this.Queue.length - 1)
     {
-        console.debug("Reached end of queue!");
+        Logger.Debug(`[Playlist ${this.Id}]`, "Reached end of queue!");
         return false;
     }
 
-    console.debug("Playlist moved up by 1.");
+    Logger.Debug(`[Playlist ${this.Id}]`,"Moving to next item in queue.");
 
     this.Position = index;
 
@@ -240,11 +194,11 @@ PlayList.previousItem = function()
 
     if (index < 0)
     {
-        console.debug("Reached start of queue!");
+        Logger.Debug(`[Playlist ${this.Id}]`,"Reached start of queue!");
         return false;
     }
 
-    console.debug("Playlist moved down by 1.");
+    Logger.Debug(`[Playlist ${this.Id}]`,"Moving to previous item in queue.");
 
     this.Position = index;
 

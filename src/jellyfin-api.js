@@ -1,264 +1,165 @@
+const https = require('https');
+
+const fuzzball = require('fuzzball');
+
 /*********************************************************************************
- * Request Items from API
- *      https://api.jellyfin.org/
+ * API Request
  */
 
-const Request = async function(endpoint, params, ...args)
-{
-    const url = new URL(endpoint, CONFIG.jellyfin.host);
-    
-    if (params)
+const Agent = new https.Agent({ keepAlive: true });
+
+const RequestOptions = {
+    method: 'GET',
+    agent: Agent,
+    timeout: 5000,
+    headers:
     {
-        params = Object.assign({}, params, ...args);
+        Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+};
 
-        for (const key in params)
-        {
-            const value = params[key];
+const MakeAPIRequest = async function (url, { ids, query, albums, artists, genres, parent }, startIndex, limit) {
 
-            if (value instanceof Array)
-                value.forEach(item => url.searchParams.append(key, String(item)));
-            else
-                url.searchParams.append(key, String(value));
+    url.searchParams.append("limit", limit || CONFIG.jellyfin.limit);
+
+    if (query) url.searchParams.append("searchTerm", query);
+    if (startIndex) url.searchParams.append("startIndex", startIndex);
+    if (ids) url.searchParams.append("ids", ids.join(","));
+    if (albums) url.searchParams.append("albumIds", albums.join(","));
+    if (artists) url.searchParams.append("artistIds", artists.join(","));
+    if (genres) url.searchParams.append("genreIds", genres.join(","));
+    if (parent) url.searchParams.append("parentId", parent);
+
+    //isFavorite
+    Logger.Debug("[JellyFin API]", `Requesting ${url.pathname} with ${url.searchParams.toString()}.`);
+
+    try {
+        const response = await fetch(url, RequestOptions);
+
+        if (!response.ok) {
+            Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}) ${await response.text()}.`);
+            return { status: false };
         }
+
+        var result = await response.json();
+
+        Logger.Debug("[JellyFin API]", `Response returned ${result.Items.length} items.`);
+
+        return { status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
+    }
+    catch (error) {
+        if (error.name == "SyntaxError")
+            Logger.Error("[JellyFin API]", `Failed to parse response from Server (path: ${url.pathname}).`);
+        else
+            Logger.Error("[JellyFin API]", `Error getting response from Server (path: ${url.pathname}).`, error);
+
+        return { status: false };
+    }
+};
+
+/*********************************************************************************
+ * Query Endpoints
+ */
+
+const Music = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
+
+    url.searchParams.append("Recursive", true);
+    url.searchParams.append("includeItemTypes", "Audio");
+    url.searchParams.append("fields", "Id,Name,RunTimeTicks,Artists,Album,AlbumId,PrimaryImageTag,IndexNumber,Genres");
+
+
+    return await MakeAPIRequest(url, query, startIndex, limit);
+};
+
+const Artists = async function (query, startIndex, limit) {
+    const url = new URL("/Artists", CONFIG.jellyfin.local);
+
+    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
+
+    return await MakeAPIRequest(url, query, startIndex, limit);
+};
+
+const Albums = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
+
+    url.searchParams.append("includeItemTypes", "MusicAlbum");
+    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
+
+    return await MakeAPIRequest(url, query, startIndex, limit);
+};
+
+const MusicGenres = async function (query, startIndex, limit) {
+    const url = new URL("/MusicGenres", CONFIG.jellyfin.local);
+
+    url.searchParams.append("fields", "Id,Name");
+
+    return await MakeAPIRequest(url, query, startIndex, limit);
+};
+
+const Playlists = async function (query, startIndex, limit) {
+    const url = new URL("/Items", CONFIG.jellyfin.local);
+
+    url.searchParams.append("fields", "Id,Name");
+    url.searchParams.append("includeItemTypes", "Playlist");
+
+    return await MakeAPIRequest(url, query, startIndex, limit);
+};
+
+/*********************************************************************************
+ * Query Users
+ */
+
+const Users = async function (query) {
+    const url = new URL("/Users", CONFIG.jellyfin.local);
+
+    const response = await fetch(url, RequestOptions);
+
+    if (!response.ok) {
+        Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}).`);
+        return { status: false };
     }
 
-    const response = await fetch(
-        url,
-        {
-            method: 'GET',
-            headers:
-            {
-                Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+    try {
+        var users = await response.json();
+
+        if (query) {
+            users.forEach(user => user.score = fuzzball.token_sort_ratio(query, user.Name));
+            users = users.filter((user) => user.score > 60);
+            users.sort((a, b) => b.score - a.score);
         }
-    );
 
-    if (!response.ok)
-        return {status: false, error: await response.text()};
-
-    var result = await response.json();
-    
-    return {status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
-};
-
-/*********************************************************************************
- * Paged Items.
- * Returns the first page and process a function for all pages.
- */
-
-/*const PagedItems = async function(callback, api, limit, ...args)
-{
-    const result = await api(...args, {limit})
-
-    if (!result.status) return result;
-
-    if (callback)
-    {
-        callback(res);
-
-        for (let i = result.index; i < result.count; i += limit)
-            api(...args, {limit, startIndex: i}).then(callback);
-    };
-
-    return result;
-};*/
-
-/*********************************************************************************
- * Request Artists
- */
-
-const Artists = async (...params) => await Request("/Artists", ...params);
-
-Artists.ByName = async (artist, ...params) => await Request(`/Artists/${artist}`, ...params);
-
-Artists.AlbumArtists = async (...params) => await Request("/Artists/AlbumArtists", ...params);
-
-/*********************************************************************************
- * Request Items
- */
-
-const Items = async (...params) => await Request("/Items", { Recursive:true }, ...params);
-
-Items.Artists = Artists;
-Items.Music = async (...params) => await Items({includeItemTypes: "Audio"}, ...params);
-Items.Albums = async (...params) => await Items({includeItemTypes: "MusicAlbum"}, ...params);
-Items.MusicGenres = async (...params) => await Items({includeItemTypes: "MusicGenre"}, ...params);
-Items.Playlists = async (...params) => await Items({includeItemTypes: "Playlist"}, ...params);
-
-
-/*********************************************************************************
- * Search Function
- */
-
-const Search = async function(api, field, query, ...perams)
-{
-    const result = await api(...perams);
-
-    if (!result.status) return result;
-
-    query = query.toLowerCase();
-
-    const collator = new Intl.Collator(undefined, {sensitivity: "accent", usage: "search"});
-
-    result.items = result.items.filter((item) => {
-        const value = item[field];
-
-        if (value == null) return false;
-
-        if (typeof value === 'string')
-            return collator.compare(value.toLowerCase(), query) === 0 || value.toLowerCase().includes(query);
-        
-        if (value instanceof Array)
-            for(v of value)
-                if (collator.compare(v.toLowerCase(), query) === 0 || v.toLowerCase().includes(query)) return true;
-
-        return false;
-    });
-
-
-    return result;
-};
-
-Items.Music.Search = async (query, ...params) => await Search(Items.Music, "Name", query, ...params);
-Items.Albums.Search = async (query, ...params) => await Search(Items.Albums, "Name", query, ...params);
-Items.Artists.Search = async (query, ...params) => await Search(Items.Artists, "Name", query, ...params);
-Items.MusicGenres.Search = async (query, ...params) => await Search(Items.MusicGenres, "Name", query, ...params);
-Items.Playlists.Search = async (query, ...params) => await Search(Items.Playlists, "Name", query, ...params);
-
-/*********************************************************************************
- * Find Albums
- */
-
-Items.Albums.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Albums({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.genres = result.items;
-
-    return result2;
-};
-
-Items.Albums.ByArist = async function(query, ...params)
-{
-    const result = await Items.Artists.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Albums({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.albums = result.items;
-
-    return result2;
-};
-
-/*********************************************************************************
- * Find Artist
- */
-
-Items.Artists.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Artists({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.artists = result.items;
-
-    return result2;
-};
-
-/*********************************************************************************
- * Find Songs
- */
-
-Items.Music.ByGenre = async function(query, ...params)
-{
-    const result = await Items.MusicGenres.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({genres: result.items.map(item => item.Name).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.genres = result.items;
-
-    return result2;
-};
-
-Items.Music.ByArist = async function(query, ...params)
-{
-    const result = await Items.Artists.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({artistIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.artists = result.items;
-
-    return result2;
-};
-
-Items.Music.ByAlbum = async function(query, ...params)
-{
-    const result = await Items.Albums.Search(query);
-
-    if (!result.status) return result;
-
-    const result2 = await Items.Music({albumIds: result.items.map(item => item.Id).join("|")}, ...params);
-
-    if (!result2.status) return result2;
-
-    result2.albums = result.items;
-
-    return result2;
-};
-
-/*********************************************************************************
- * Find Songs by playlist
- */
-
-/*Items.Music.ByPlayList = async function(query, ...params)
-{
-    const result = await Items.Playlists.Search(query, {fields: "ItemIds"});
-
-    if (!result.status) return result;
-
-    const items = { };
-
-    for(item of result.items)
-    {
-        const result2 = await Items({parentId: item.Id}, ...params);
-
-        if (!result2.status) continue;
-
-        result2.items.forEach(item => items[item.Id] = item);
+        return { status: true, users };
     }
+    catch (error) {
+        Logger.Error("[JellyFin API]", `Error getting response from Server (path: ${url.pathname}).`, error);
+        return { status: false };
+    }
+};
 
-    result.playlists = result.items;
+const Favourites = async function (userID, startIndex, limit) {
+    const url = new URL(`/Users/${userID}/Items`, CONFIG.jellyfin.local);
 
-    result.items = Object.values(items);
+    url.searchParams.append("isFavorite", true);
+    url.searchParams.append("Recursive", true);
+    url.searchParams.append("includeItemTypes", "Audio");
+    url.searchParams.append("fields", "Id,Name,RunTimeTicks,Artists,Album,AlbumId,PrimaryImageTag,IndexNumber,Genres");
 
-    return result;
-};*/
+    return await MakeAPIRequest(url, {}, startIndex, limit);
+};
 
 /*********************************************************************************
  * Exports
  */
 
-module.exports = Items;
+module.exports = {
+    Music,
+    Artists,
+    Albums,
+    MusicGenres,
+    Playlists,
+    Users,
+    Favourites
+};

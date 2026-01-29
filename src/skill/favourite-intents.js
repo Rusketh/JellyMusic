@@ -2,7 +2,7 @@ const { limit } = CONFIG.jellyfin;
 
 const Alexa = require('ask-sdk-core');
 
-const JellyFin = require("../jellyfin-api");
+const JellyFin = require("../jellyfin-api.js");
 
 const Devices = require("../playlist/devices.js");
 
@@ -11,7 +11,7 @@ const Player = require("../players/player.js");
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
- * Process Intent: Get Genre Intent
+ * Process Intent: Get favourites by user name
  */
 
 const Processer = async function (handlerInput, action = "play", buildQueue, submit) {
@@ -19,54 +19,47 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (!slots.genre || !slots.genre.value) {
-        const speech = LANGUAGE.Value("GENRE_NO_NAME");
+    if (!slots.username || !slots.username.value) {
+        const speech = LANGUAGE.Value("NO_USERNAME");
 
         return [{ status: false, speech }];
     }
 
-    Logger.Debug(`[Genre Request]`, `Requesting genre ${slots.genre.value}.`);
+    Logger.Debug(`[Favourite Request]`, `Requested user ${slots.username.value}`);
 
-    const genres = await JellyFin.MusicGenres({ query: slots.genre.value });
+    const users = await JellyFin.Users(slots.username.value);
 
-    if (!genres.status || !genres.items[0]) {
-        Logger.Debug(`[Genre Request]`, `Genre not found.`);
+    if (!users.status || !users.users[0]) {
+        Logger.Debug(`[Favourite Request]`, "No user found.");
 
-        const speech = LANGUAGE.Parse("GENRE_NOTFOUND_BY_NAME", { genre_name: slots.genre.value });
-
-        return [{ status: false, speech }];
-    }
-    const genreIds = genres.items.map(item => item.Id);
-
-    const songs = await JellyFin.Music({ genres: genreIds });
-
-    if (!songs.status || !songs.items[0]) {
-        Logger.Debug(`[Genre Request]`, `No music found.`);
-
-        const speech = LANGUAGE.Parse("GENRE_NO_MUSIC", { genre_name: slots.genre.value });
+        const speech = LANGUAGE.Parse("USER_NOTFOUND_BY_NAME", { username: slots.username.value });
 
         return [{ status: false, speech }];
     }
+
+    const user = users.users[0];
+
+    const favourites = await JellyFin.Favourites(user.Id);
 
     const then = async function (data) {
         if (buildQueue)
-            for (let i = songs.index + limit; i < songs.count; i += limit)
-                buildQueue(handlerInput, await JellyFin.Music({ genres: genreIds }, i), data);
+            for (let i = favourites.index + limit; i < favourites.count; i += limit)
+                buildQueue(handlerInput, await JellyFin.Favourites(user.Id, i), data);
 
         if (submit)
             return await submit(handlerInput, data);
     };
 
-    return [{ status: true, genres: genres.items, items: songs.items }, then];
+    return [{ status: true, user, items: favourites.items }, then];
 };
 
 /*********************************************************************************
- * Play Playlist Intent
+ * Play Favourites Intent
  */
 
-const PlayGenreIntent = CreateQueueIntent(
-    "PlayGenreIntent", "play", Processer,
-    function (handlerInput, { genres, items }, data) {
+const PlayFavouritesIntent = CreateQueueIntent(
+    "PlayFavouritesIntent", "play", Processer,
+    function (handlerInput, { user, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -82,13 +75,9 @@ const PlayGenreIntent = CreateQueueIntent(
         if (!Player.PlayItem(handlerInput, playlist, item))
             return responseBuilder.getResponse();
 
-        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${user.Name}'s favourites.`);
 
-
-        var speech = LANGUAGE.Parse("GENRE_PLAYING", { genre_name: genres[0].Name });
-
-        if (genres.length > 1)
-            var speech = LANGUAGE.Parse("GENRE_PLAYING_SIMULAR", { genre_name: genres[0].Name });
+        var speech = LANGUAGE.Parse("FAVOURITES_PLAYING", { user_name: user.Name });
 
         return responseBuilder.speak(speech).getResponse();
     },
@@ -106,12 +95,12 @@ const PlayGenreIntent = CreateQueueIntent(
 );
 
 /*********************************************************************************
- * Play Playlist Intent
+ * Shuffle Favourites Intent
  */
 
-const ShuffleGenreIntent = CreateQueueIntent(
-    "ShuffleGenreIntent", "shuffling", Processer,
-    function (handlerInput, { genres, items }, data) {
+const ShuffleFavouritesIntent = CreateQueueIntent(
+    "ShuffleFavouritesIntent", "shuffling", Processer,
+    function (handlerInput, { user, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -129,12 +118,9 @@ const ShuffleGenreIntent = CreateQueueIntent(
         if (!Player.PlayItem(handlerInput, playlist, item))
             return responseBuilder.getResponse();
 
-        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${user.Name}'s favourites.`);
 
-        var speech = LANGUAGE.Parse("GENRE_SHUFFLE", { genre_name: genres[0].Name });
-
-        if (genres.length > 1)
-            var speech = LANGUAGE.Parse("GENRE_SHUFFLE_SIMULAR", { genre_name: genres[0].Name });
+        var speech = LANGUAGE.Parse("FAVOURITES_SHUFFLE", { user_name: user.Name });
 
         return responseBuilder.speak(speech).getResponse();
     },
@@ -159,12 +145,12 @@ const ShuffleGenreIntent = CreateQueueIntent(
 );
 
 /*********************************************************************************
- * Queue Playlist Intent
+ * Queue Favourites Intent
  */
 
-const QueueGenreIntent = CreateQueueIntent(
-    "QueueGenreIntent", "queue", Processer,
-    function (handlerInput, { genres, items, count }, data) {
+const QueueFavouritesIntent = CreateQueueIntent(
+    "QueueFavouritesIntent", "queue", Processer,
+    function (handlerInput, { user, items, count }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -176,12 +162,9 @@ const QueueGenreIntent = CreateQueueIntent(
         const item = playlist.getCurrentItem();
 
         if (Player.PlayItem(handlerInput, playlist, item))
-            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${user.Name}'s favourites.`);
 
-        var speech = LANGUAGE.Parse("GENRE_QUEUED", { genre_name: genres[0].Name, count });
-
-        if (genres.length > 1)
-            var speech = LANGUAGE.Parse("GENRE_QUEUED_SIMULAR", { genre_name: genres[0].Name, count });
+        var speech = LANGUAGE.Parse("FAVOURITES_QUEUED", { count, user_name: user.Name });
 
         return responseBuilder.speak(speech).getResponse();
     },
@@ -196,13 +179,12 @@ const QueueGenreIntent = CreateQueueIntent(
     }
 );
 
-
 /*********************************************************************************
  * Exports
  */
 
 module.exports = {
-    PlayGenreIntent,
-    ShuffleGenreIntent,
-    QueueGenreIntent
+    PlayFavouritesIntent,
+    ShuffleFavouritesIntent,
+    QueueFavouritesIntent
 };

@@ -1,4 +1,4 @@
-const {limit} = CONFIG.jellyfin;
+const { limit } = CONFIG.jellyfin;
 
 const Alexa = require('ask-sdk-core');
 
@@ -6,106 +6,118 @@ const JellyFin = require("../jellyfin-api");
 
 const Devices = require("../playlist/devices.js");
 
+const Player = require("../players/player.js");
+
 const { CreateQueueIntent } = require("./alexa-helper.js");
 
 /*********************************************************************************
  * Process Intent: Get Album by name & Artist
  */
 
-const Processer = async function(handlerInput, action = "play", buildQueue, submit) 
-{
+const Processer = async function (handlerInput, action = "play", buildQueue, submit) {
     const { requestEnvelope } = handlerInput;
     const intent = requestEnvelope.request.intent;
     const slots = intent.slots;
 
-    if (!slots.albumname || !slots.albumname.value)
-    {
-        const speach1 = `Which album would you like to ${action}?`;
-        const speach2 = `I didn't catch the album name. ${speach1}`;
-        return [{status: false, speach1, speach2}];
+    if (!slots.albumname || !slots.albumname.value) {
+        const speech = LANGUAGE.Value("ALBUM_NO_NAME");
+
+        return [{ status: false, speech }];
     }
 
-    console.log(`Requesting Album: ${slots.albumname.value}`);
+    Logger.Debug(`[Album Request]`, `Requested album ${slots.albumname.value}`);
 
-    const albums = await JellyFin.Albums.Search(slots.albumname.value);
-    
-    if (!albums.status || !albums.items[0])
-    {
-        const speach = `I didn't find an album called ${slots.albumname.value}`;
-        return [{status: false, speach}];
+    const albums = await JellyFin.Albums({ query: slots.albumname.value });
+
+    if (!albums.status || !albums.items[0]) {
+        Logger.Debug(`[Album Request]`, "No album found.");
+
+        const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME", { album_name: slots.albumname.value });
+
+        return [{ status: false, speech }];
     }
 
     var artist = undefined;
     var album = albums.items[0];
 
-    if (slots.artistname && slots.artistname.value)
-    {
-        console.log(`Requesting Artist for Album: ${slots.artistname.value}`);
+    if (slots.artistname && slots.artistname.value) {
+        Logger.Debug(`[Album Request]`, `Requested Artist ${slots.artistname.value}`);
 
-        const artists = await JellyFin.Artists.Search(slots.artistname.value);
-        
-        if (!artists.status || !artists.items[0])
-        {
-            const speach2 = `I didn't find an artist called ${slots.artistname.value}.`;
-            return [{status: false, speach}];
+        const artists = await JellyFin.Artists({ query: slots.artistname.value });
+
+        if (!artists.status || !artists.items[0]) {
+            Logger.Debug(`[Album Request]`, "No artist found.");
+
+            const speech = LANGUAGE.Parse("ARTIST_NOTFOUND_BY_NAME", { artist_name: slots.artistname.value });
+
+            return [{ status: false, speech }];
         }
 
         artist = artists.items[0];
 
-        if (album.AlbumArtist && album.AlbumArtist.toLowerCase() != artist.Name.toLowerCase())
-        {
+        if (album.AlbumArtist && album.AlbumArtist.toLowerCase() != artist.Name.toLowerCase()) {
 
             album = undefined;
 
-            for (var item of albums.items)
-            {
-                if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase())
-                {
+            for (var item of albums.items) {
+                if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase()) {
                     album = item;
                     break;
                 }
             }
 
-            if (!album)
-            {
+            if (!album) {
                 album = albums.items[0];
-                
-                if (album && album.AlbumArtist)
-                {
-                    const suggestion = `${album.Name} by ${album.AlbumArtist}`;
 
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}, you might have meant ${suggestion}.`;
-                    
-                    return [{status: false, speach}];
+                if (album && album.AlbumArtist) {
+                    Logger.Debug(`[Album Request]`, `Returning suggestion ${album.Name} by ${album.AlbumArtist}`);
+
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_SUGGEST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value,
+                            suggestion_name: album.Name,
+                            suggestion_artist: album.AlbumArtist
+                        }
+                    );
+
+                    return [{ status: false, speech }];
                 }
-                else
-                {
-                    const speach = `I didn't find an album called ${slots.albumname.value} by ${artist.name || slots.artistname.value}.`;
-                    return [{status: false, speach}];
+                else {
+
+                    Logger.Debug(`[Album Request]`, "Album not found.");
+
+                    const speech = LANGUAGE.Parse("ALBUM_NOTFOUND_BY_NAME_AND_ARTIST",
+                        {
+                            album_name: slots.albumname.value,
+                            artist_name: artist.name || slots.artistname.value
+                        }
+                    );
+
+                    return [{ status: false, speech }];
                 }
             }
         }
     }
 
-    const songs = await JellyFin.Music({limit, albumIds: album.Id});
+    const songs = await JellyFin.Music({ limit, albums: [album.Id] });
 
-    if (!songs.status || !songs.items[0])
-    {
-        const speach = `I didn't find an music in the album ${slots.albumname.value}.`;
-        return [{status: false, speach1, speach2}];
+    if (!songs.status || !songs.items[0]) {
+        const speech = LANGUAGE.Parse("ALBUM_NO_MUSIC", { album_name: slots.albumname.value });
+
+        return [{ status: false, speach1, speach2 }];
     }
 
-    const then = async function(data)
-    {
+    const then = async function (data) {
         if (buildQueue)
             for (let i = songs.index + limit; i < songs.count; i += limit)
-                buildQueue(handlerInput, await JellyFin.Music({albumIds: album.Id, limit, startIndex: i}), data);
+                buildQueue(handlerInput, await JellyFin.Music({ albums: [album.Id] }, i), data);
 
         if (submit)
             return await submit(handlerInput, data);
     };
 
-    return [{status: true, album, items: songs.items}, then];
+    return [{ status: true, album, items: songs.items }, then];
 };
 
 /*********************************************************************************
@@ -114,8 +126,7 @@ const Processer = async function(handlerInput, action = "play", buildQueue, subm
 
 const PlayAlbumIntent = CreateQueueIntent(
     "PlayAlbumIntent", "play", Processer,
-    function (handlerInput, {album, items}, data)
-    {
+    function (handlerInput, { album, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -126,16 +137,26 @@ const PlayAlbumIntent = CreateQueueIntent(
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Playing album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speach = `Playing album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ALBUM_PLAYING", { album_name: album.Name });
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_PLAYING_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -154,8 +175,7 @@ const PlayAlbumIntent = CreateQueueIntent(
 
 const ShuffleAlbumIntent = CreateQueueIntent(
     "ShuffleAlbumIntent", "shuffling", Processer,
-    function (handlerInput, {album, items}, data)
-    {
+    function (handlerInput, { album, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -163,21 +183,31 @@ const ShuffleAlbumIntent = CreateQueueIntent(
         const playlist = Devices.getPlayList(deviceID);
 
         playlist.clear();
-        
+
         items = playlist.shuffleItems(items);
 
         [data.first, data.last] = playlist.prefixItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Shuffling album ${album.Name}, on ${CONFIG.skill.name}`;
-        
-        if (album.AlbumArtist) speach = `Shuffling album ${album.Name} by ${album.AlbumArtist}, on ${CONFIG.skill.name}`;
+        if (!Player.PlayItem(handlerInput, playlist, item))
+            return responseBuilder.getResponse();
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+        var speech = LANGUAGE.Parse("ALBUM_SHUFFLE", { album_name: album.Name });
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_SHUFFLE_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -188,8 +218,7 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
         data.last = last;
     },
-    function({ requestEnvelope }, {first, last})
-    {
+    function ({ requestEnvelope }, { first, last }) {
         const deviceID = Alexa.getDeviceId(requestEnvelope);
 
         const playlist = Devices.getPlayList(deviceID);
@@ -204,8 +233,7 @@ const ShuffleAlbumIntent = CreateQueueIntent(
 
 const QueueAlbumIntent = CreateQueueIntent(
     "QueueAlbumIntent", "queue", Processer,
-    async function (handlerInput, {album, items}, data)
-    {
+    async function (handlerInput, { album, items }, data) {
         const { responseBuilder, requestEnvelope } = handlerInput;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -214,16 +242,24 @@ const QueueAlbumIntent = CreateQueueIntent(
 
         playlist.appendItems(items);
 
-        const directive = playlist.getPlayDirective();
+        const item = playlist.getCurrentItem();
 
-        var speach = `Adding album ${album.Name}, to the queue.`;
-        
-        if (album.AlbumArtist) speach = `Adding album ${album.Name} by ${album.AlbumArtist}, to the queue.`;
+        if (Player.PlayItem(handlerInput, playlist, item))
+            Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-        return responseBuilder.speak(speach).addAudioPlayerPlayDirective(...directive).getResponse();
+        var speech = LANGUAGE.Parse("ALBUM_QUEUED", { album_name: album.Name });
+
+        if (album.AlbumArtist)
+            speech = LANGUAGE.Parse("ALBUM_QUEUED_BY_ARTIST",
+                {
+                    album_name: album.Name,
+                    album_artist: album.AlbumArtist
+                }
+            );
+
+        return responseBuilder.speak(speech).getResponse();
     },
-    function({ requestEnvelope }, {status, items}, data)
-    {
+    function ({ requestEnvelope }, { status, items }, data) {
         if (!status) return;
 
         const deviceID = Alexa.getDeviceId(requestEnvelope);

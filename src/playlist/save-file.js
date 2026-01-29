@@ -1,4 +1,4 @@
-const {limit} = CONFIG.jellyfin;
+const { limit } = CONFIG.jellyfin;
 
 const JellyFin = require("../jellyfin-api");
 
@@ -16,9 +16,8 @@ const fs = require("fs");
  * Save Device Queue
  */
 
-const SaveDeviceQueue = async function(playlist)
-{
-    let queue = [ ];
+const SaveDeviceQueue = async function (playlist) {
+    let queue = [];
 
     for (let item of playlist.Queue)
         queue.push(
@@ -31,7 +30,7 @@ const SaveDeviceQueue = async function(playlist)
         );
 
     const hash = crypto.hash('sha1', playlist.Device);
-    
+
     return fs.promises.writeFile(
         `${DATA_DIR}/${hash}.jmp`,
         JSON.stringify(
@@ -50,18 +49,16 @@ const SaveDeviceQueue = async function(playlist)
  * Save All Device Queues
  */
 
-const Save = function()
-{
+const Save = function () {
     const promises = [];
 
-    for(let playlist of Devices.All())
-    {
+    for (let playlist of Devices.All()) {
         if (!playlist.Dirty || playlist.Saving)
             continue;
 
         const promise = SaveDeviceQueue(playlist).then(
             () => {
-                console.log("Saved Device Queue: ", playlist.Device);
+                Logger.Debug(`[Playlist ${playlist.Id}]`, "Saved queue to local file.");
                 playlist.Dirty = false;
                 playlist.Saving = false;
             }
@@ -78,17 +75,13 @@ const Save = function()
  * Load Device queue
  */
 
-const LoadDeviceQueue = async function({deviceID, position, token, queue})
-{
-    console.log("Restoring Device Queue: ", deviceID);
+const LoadDeviceQueue = async function ({ deviceID, position, token, queue }) {
+    const songs = {};
+    const itemIDs = queue.map(({ id }) => id);
 
-    const songs = { };
-    const itemIDs = queue.map(({id}) => id);
+    for (let i = 0; i < itemIDs.length; i += limit) {
+        const { status, items } = await JellyFin.Music({ ids: itemIDs.splice(i, i + limit) });
 
-    for (let i = 0; i < itemIDs.length; i += limit)
-    {
-        const {status, items} = await JellyFin.Music({ ids: itemIDs.splice(i, i + limit).join(",") });
-        
         if (!status)
             continue;
 
@@ -98,8 +91,7 @@ const LoadDeviceQueue = async function({deviceID, position, token, queue})
     const playList = Devices.getPlayList(deviceID);
     playList.playbackToken = token;
 
-    for(let {id, token, isPaused, offset} of queue)
-    {
+    for (let { id, token, isPaused, offset } of queue) {
         let song = songs[id];
 
         if (!song)
@@ -109,8 +101,7 @@ const LoadDeviceQueue = async function({deviceID, position, token, queue})
         queued.Playback.IsPaused = isPaused;
         queued.Playback.Offset = offset;
 
-        if (isPaused || token == playList.playbackToken)
-        {
+        if (isPaused || token == playList.playbackToken) {
             if (!isPaused)
                 queued.Playback.IsPlaying = true;
 
@@ -120,20 +111,18 @@ const LoadDeviceQueue = async function({deviceID, position, token, queue})
         playList.Queue.push(queued);
     }
 
-    console.log("Device Queue Restored: ", deviceID);
+    Logger.Debug(`[Playlist ?]`, "Restored queue from local file.");
 };
 
 /*********************************************************************************
  * Load Device queues
  */
 
-const Load = async function()
-{
+const Load = async function () {
     const promises = [];
     const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith(".jmp"));
-    
-    for(let file of files)
-    {
+
+    for (let file of files) {
         const promise = fs.promises.readFile(`${DATA_DIR}/${file}`).then(
             (data) => LoadDeviceQueue(JSON.parse(data))
         );

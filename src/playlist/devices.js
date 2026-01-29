@@ -1,3 +1,5 @@
+const Player = require("../players/player.js");
+
 const PlayList = require("./playlist.js");
 
 const Alexa = require('ask-sdk-core');
@@ -8,17 +10,16 @@ const fs = require("fs");
  * Device Playlists
  */
 
-const devices = { };
+const devices = {};
 
 const All = () => Object.values(devices);
 
-const getPlayList = function(device)
-{
+const getPlayList = function (device) {
     if (devices[device]) return devices[device];
 
-    console.log(`Registering new device: ${device}`);
-
     const playlist = PlayList.new(device);
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Created new device playlist.");
 
     devices[device] = playlist;
 
@@ -29,8 +30,7 @@ const getPlayList = function(device)
  * 
  */
 
-const onLaunch = function(handlerInput)
-{
+const onLaunch = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -46,38 +46,42 @@ const onLaunch = function(handlerInput)
  * 
  */
 
-const onPlaybackNearlyFinished = function(handlerInput)
-{
+const onPlaybackNearlyFinished = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
 
-    console.debug("Playback nearly finished!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback nearly finished!");
 
-    const directive = playlist.getPlayNextDirective(handlerInput);
+    const item = playlist.getNextItem();
 
-    if (!directive || !playlist.Validate(directive, handlerInput)) return responseBuilder.getResponse();
+    if (!Player.EnqueueItem(handlerInput, playlist, item))
+        return responseBuilder.getResponse();
 
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
+    Logger.Info(`[Device ${playlist.Id}]`, `Queued ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+    return responseBuilder.getResponse();
 };
 
 /*********************************************************************************
  * 
  */
 
-const onQueueFinished = function(handlerInput, speak)
-{
-    const { responseBuilder } = handlerInput;
+const onQueueFinished = function (handlerInput, speak) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
 
-    console.debug("Playback queue finished!");
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
 
-    if (speak)
-    {
-        const speach = "There are no more songs left in the queue.";
-        
-        return responseBuilder.speak(speach).getResponse();
+    const playlist = getPlayList(deviceID);
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback queue finished!");
+
+    if (speak) {
+        const speech = LANGUAGE.Value("END_OF_QUEUE");
+
+        return responseBuilder.speak(speech).getResponse();
     }
 
     return responseBuilder.getResponse();
@@ -87,42 +91,36 @@ const onQueueFinished = function(handlerInput, speak)
  * 
  */
 
-const onPlaybackFailed = function(handlerInput)
-{
+const onPlaybackFailed = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
 
-    var directive = playlist.getPlayDirective(handlerInput);
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback failed!");
 
-    console.debug("Playback failed!");
+    var item = playlist.getCurrentItem();
 
-    if (!directive) return responseBuilder.getResponse();
+    if (!Player.PlayItem(handlerInput, playlist, item)) {
+        Logger.Debug(`[Device ${playlist.Id}]`, "Moving to next song.");
 
-    if (playlist.Validate(directive, handlerInput))
-        return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
-        
-    console.debug("Moving to next song.");
+        item = playlist.getNextItem();
 
-    const next = playlist.getNextItem();
+        if (!playlist.nextItem() || !Player.PlayItem(handlerInput, playlist, item))
+            return onQueueFinished(handlerInput);
+    }
 
-    if (!next) return onQueueFinished(handlerInput); //responseBuilder.getResponse();
+    Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-    directive = next.getPlayDirective(directive, handlerInput);
-
-    if (!directive || !playlist.Validate()) return responseBuilder.getResponse();
-
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
+    return responseBuilder.getResponse();
 };
 
 /*********************************************************************************
  * 
  */
 
-const onPlaybackStarted = function(handlerInput)
-{
+const onPlaybackStarted = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -131,7 +129,7 @@ const onPlaybackStarted = function(handlerInput)
 
     playlist.start();
 
-    console.debug("Playback started!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback started!");
 
     return responseBuilder.getResponse();
 };
@@ -140,8 +138,7 @@ const onPlaybackStarted = function(handlerInput)
  * 
  */
 
-const onPlaybackFinished = function(handlerInput)
-{
+const onPlaybackFinished = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -150,33 +147,17 @@ const onPlaybackFinished = function(handlerInput)
 
     playlist.stop();
 
-    console.debug("Playback finished!");
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback finished!");
 
-    const directive = playlist.getPlayNextDirective(handlerInput);
-
-    if (!playlist.nextItem()) //Moves up the queue.
+    if (!playlist.nextItem())
         return onQueueFinished(handlerInput);
 
-    if (!directive || !playlist.Validate(directive, handlerInput)) return responseBuilder.getResponse();
+    const item = playlist.getCurrentItem();
 
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
-};
+    if (!Player.PlayItem(handlerInput, playlist, item))
+        return responseBuilder.getResponse();
 
-/*********************************************************************************
- * 
- */
-
-const onPlaybackStopped = function(handlerInput)
-{
-    const { responseBuilder, requestEnvelope } = handlerInput;
-
-    const deviceID = Alexa.getDeviceId(requestEnvelope);
-
-    const playlist = getPlayList(deviceID);
-
-    playlist.stop();
-
-    console.debug("Playback stopped!");
+    Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
     return responseBuilder.getResponse();
 };
@@ -185,8 +166,25 @@ const onPlaybackStopped = function(handlerInput)
  * 
  */
 
-const doClear = function(handlerInput)
-{
+const onPlaybackStopped = function (handlerInput) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    playlist.stop();
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playback stopped!");
+
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * 
+ */
+
+const doClear = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
@@ -195,22 +193,7 @@ const doClear = function(handlerInput)
 
     playlist.clearRemainingItems();
 
-    return responseBuilder.getResponse();
-};
-
-/*********************************************************************************
- * 
- */
-
-const doPause = function(handlerInput)
-{
-    const { responseBuilder, requestEnvelope } = handlerInput;
-
-    const deviceID = Alexa.getDeviceId(requestEnvelope);
-
-    const playlist = getPlayList(deviceID);
-
-    playlist.pause(requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Queue Cleared.");
 
     return responseBuilder.getResponse();
 };
@@ -219,36 +202,61 @@ const doPause = function(handlerInput)
  * 
  */
 
-const doResume = function(handlerInput)
-{
+const doPause = function (handlerInput, offset) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
 
-    const directive = playlist.getPlayDirective();
+    playlist.pause(offset || requestEnvelope.context.AudioPlayer.offsetInMilliseconds);
 
-    if (!directive) return responseBuilder.getResponse();
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Paused.");
 
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
+    Player.StopPlayback(handlerInput);
+
+    return responseBuilder.getResponse();
 };
 
 /*********************************************************************************
  * 
  */
 
-const doStop = function(handlerInput)
-{
+const doResume = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
-    
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    const item = playlist.getCurrentItem();
+
+    if (!Player.PlayItem(handlerInput, playlist, item))
+        return responseBuilder.getResponse();
+
+    Logger.Info(`[Device ${playlist.Id}]`, `Resuming ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * 
+ */
+
+const doStop = function (handlerInput) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
 
     playlist.clear();
 
-    return responseBuilder.addAudioPlayerStopDirective().getResponse();
+    Logger.Info(`[Device ${playlist.Id}]`, "Playback Stopped.");
+
+    Player.StopPlayback(handlerInput);
+
+    return responseBuilder.getResponse();
 };
 
 
@@ -256,65 +264,91 @@ const doStop = function(handlerInput)
  * 
  */
 
-const doPlayCurrent = function(handlerInput)
-{
+const doPlayCurrent = function (handlerInput) {
     const { responseBuilder, requestEnvelope } = handlerInput;
 
     const deviceID = Alexa.getDeviceId(requestEnvelope);
 
     const playlist = getPlayList(deviceID);
 
-    const current = playlist.getCurrentItem();
+    const item = playlist.getCurrentItem();
 
-    if (!current) return responseBuilder.getResponse();
-
-    const directive = current.getPlayDirective();
-
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
-};
-
-/*********************************************************************************
- * 
- */
-
-const doPlayNext = function(handlerInput)
-{
-    const { responseBuilder, requestEnvelope } = handlerInput;
-
-    const deviceID = Alexa.getDeviceId(requestEnvelope);
-
-    const playlist = getPlayList(deviceID);
-
-    const next = playlist.getNextItem();
-
-    if (!next || !playlist.nextItem())
-        return onQueueFinished(handlerInput, true); //responseBuilder.getResponse();
-
-    const directive = next.getPlayDirective();
-
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
-};
-
-/*********************************************************************************
- * 
- */
-
-const doPlayPrevious = function(handlerInput)
-{
-    const { responseBuilder, requestEnvelope } = handlerInput;
-
-    const deviceID = Alexa.getDeviceId(requestEnvelope);
-
-    const playlist = getPlayList(deviceID);
-
-    const previous = playlist.getPreviousItem();
-
-    if (!previous || !playlist.previousItem())
+    if (!Player.PlayItem(handlerInput, playlist, item))
         return responseBuilder.getResponse();
 
-    const directive = previous.getPlayDirective();
+    Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
 
-    return responseBuilder.addAudioPlayerPlayDirective(...directive).getResponse();
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * 
+ */
+
+const doPlayNext = function (handlerInput) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    const item = playlist.getNextItem();
+
+    if (!item || !playlist.nextItem())
+        return onQueueFinished(handlerInput, true);
+
+    if (!Player.PlayItem(handlerInput, playlist, item))
+        return responseBuilder.getResponse();
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playing Next Item.");
+
+    Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * 
+ */
+
+const doPlayPrevious = function (handlerInput) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    const item = playlist.getPreviousItem();
+
+    if (!item || !playlist.previousItem())
+        return responseBuilder.getResponse();
+
+    if (!Player.PlayItem(handlerInput, playlist, item))
+        return responseBuilder.getResponse();
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Playing Previous Item.");
+
+    Logger.Info(`[Device ${playlist.Id}]`, `Playing ${item.Item.Name} by ${item.Item.AlbumArtist}`);
+
+    return responseBuilder.getResponse();
+};
+
+/*********************************************************************************
+ * End the session
+ */
+
+const doSessionEnded = function (handlerInput) {
+    const { responseBuilder, requestEnvelope } = handlerInput;
+
+    const deviceID = Alexa.getDeviceId(requestEnvelope);
+
+    const playlist = getPlayList(deviceID);
+
+    Player.EndSession(handlerInput, playlist);
+
+    Logger.Debug(`[Device ${playlist.Id}]`, "Session ended.");
+
+    return responseBuilder.getResponse();
 };
 
 /*********************************************************************************
@@ -336,5 +370,6 @@ module.exports = {
     doStop,
     doPlayCurrent,
     doPlayNext,
-    doPlayPrevious
+    doPlayPrevious,
+    doSessionEnded
 };

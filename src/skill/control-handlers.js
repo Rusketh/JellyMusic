@@ -93,6 +93,15 @@ const PreviousButtonHandler = CreateHandler(
 );
 
 /*********************************************************************************
+ * Session Ended Handler
+ */
+
+const SessionEndedHandler = CreateHandler(
+    "SessionEndedRequest",
+    Devices.doSessionEnded
+);
+
+/*********************************************************************************
  * Exports
  */
 
@@ -106,5 +115,6 @@ module.exports = {
     PlayButtonHandler,
     PauseButtonHandler,
     NextButtonHandler,
-    PreviousButtonHandler
+    PreviousButtonHandler,
+    SessionEndedHandler
 };

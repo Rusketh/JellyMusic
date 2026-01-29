@@ -6,6 +6,8 @@ const Alexa = require('ask-sdk-core');
 
 const ControlHandlers = require("./control-handlers.js");
 
+const APLHandlers = require("./apl-handlers.js");
+
 const ControlIntents = require("./control-intents.js");
 
 const AlbumIntents = require("./album-intents.js");
@@ -16,33 +18,42 @@ const SongIntents = require("./song-intents.js");
 
 const PlaylistIntents = require("./playlist-intents.js");
 
+const FavouriteIntents = require("./favourite-intents.js");
+
 const GenreIntents = require("./genre-intent.js");
 
 const QueryIntents = require("./query-intents.js");
 
 /*********************************************************************************
- * Error Handler
+ * Error Handlers
  */
+
+const Unhandler = {
+    canHandle: () => true,
+    handle: function (handlerInput) {
+        const { responseBuilder, requestEnvelope } = handlerInput;
+        const type = Alexa.getRequestType(requestEnvelope);
+        Logger.Warn(`[Alexa Skill] Unhandled request: ${type}`);
+        return responseBuilder.getResponse();
+    }
+};
+
+const ExceptionEncounteredHandler = {
+    canHandle: (handlerInput) => Alexa.getRequestType(handlerInput.requestEnvelope) === 'System.ExceptionEncountered',
+    handle: (handlerInput) => {
+        const { requestEnvelope, responseBuilder } = handlerInput;
+        const { cause, error } = requestEnvelope.request;
+        Logger.Error(`[Alexa Skill] Exception encountered: ${cause}`);
+        Logger.Error(error);
+        return responseBuilder.getResponse();
+    }
+};
 
 const ErrorHandler = {
     canHandle: () => true,
-    handle: function (handlerInput, error)
-    {
-        const {responseBuilder, requestEnvelope} = handlerInput;
-
-        if (!error && requestEnvelope.request)
-            error = requestEnvelope.request.error;
-
-        const type = Alexa.getRequestType(handlerInput.requestEnvelope);
-        console.error(`Error handled: ${type}`);
-
-        if (type == "IntentRequest")
-        {
-            const intent = Alexa.getIntentName(handlerInput.requestEnvelope);
-            console.error(`Intent: ${intent}`);
-        }
-
-        console.error(error);
+    handle: function (handlerInput, error) {
+        Logger.Error(`[Alexa Skill] Error handled: ${error.message}`);
+        Logger.Error(error);
 
         return responseBuilder.getResponse();
     }
@@ -64,6 +75,14 @@ const skill = Alexa.SkillBuilders.custom()
         ControlHandlers.PauseButtonHandler,
         ControlHandlers.NextButtonHandler,
         ControlHandlers.PreviousButtonHandler,
+        ControlHandlers.SessionEndedHandler,
+
+        APLHandlers.PlaybackPaused,
+        APLHandlers.PlaybackStarted,
+        APLHandlers.PlaybackFinished,
+        APLHandlers.PlaybackFailed,
+        APLHandlers.PlayPrevious,
+        APLHandlers.PlayNext,
 
         ControlIntents.StopIntent,
         ControlIntents.CancelIntent,
@@ -90,12 +109,16 @@ const skill = Alexa.SkillBuilders.custom()
         SongIntents.QueueSongIntent,
         GenreIntents.QueueGenreIntent,
 
-        QueryIntents.WhatThisIntent,
+        FavouriteIntents.PlayFavouritesIntent,
+        FavouriteIntents.ShuffleFavouritesIntent,
+        FavouriteIntents.QueueFavouritesIntent,
 
-        ErrorHandler
+        QueryIntents.WhatThisIntent,
+        ExceptionEncounteredHandler,
+        Unhandler
     ).addErrorHandlers(
         ErrorHandler
-    ).create();
+    ).withSkillId(CONFIG.skill.id).create();
 
 /*********************************************************************************
  * Exports
