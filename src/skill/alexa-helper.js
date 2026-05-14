@@ -176,7 +176,6 @@ const CreateAPLEventHandler = function(event, callback)
                     Logger.Error(`Error in APL event handler handle("${event}"):`);
                     Logger.Error(err);
 
-                    const speech = `An interal error has occured.`;
                     return responseBuilder.getResponse();
                 }
             }

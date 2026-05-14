@@ -6,12 +6,8 @@ const fuzzball = require('fuzzball');
  * API Request
  */
 
-const Agent = new https.Agent({ keepAlive: true });
-
 const RequestOptions = {
     method: 'GET',
-    agent: Agent,
-    timeout: 5000,
     headers:
     {
         Authorization: `MediaBrowser Token="${CONFIG.jellyfin.key}"`,
@@ -36,7 +32,7 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
     Logger.Debug("[JellyFin API]", `Requesting ${url.pathname} with ${url.searchParams.toString()}.`);
 
     try {
-        const response = await fetch(url, RequestOptions);
+        const response = await fetch(url, Object.assign(RequestOptions, { signal: AbortSignal.timeout(5000) }));
 
         if (!response.ok) {
             Logger.Error("[JellyFin API]", `No Response from Server (path: ${url.pathname}) ${await response.text()}.`);

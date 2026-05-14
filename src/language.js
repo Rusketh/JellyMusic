@@ -1,12 +1,14 @@
 const assert = require("node:assert");
 
+const path = require("node:path");
+
 const fs = require("node:fs");
 
 /******************************************************************************************
  * Validate Language File
  */
 
-const LANG_FILE = `./languages/${CONFIG.language}.json`;
+const LANG_FILE = path.join(__dirname, 'languages', `${CONFIG.language}.json`);
 
 assert(fs.existsSync(LANG_FILE), `Invalid language selected (${CONFIG.language})\nThis can set in CONFIG under "language" or as enviroment value LANGUAGE.`)
 
@@ -17,7 +19,7 @@ assert(fs.existsSync(LANG_FILE), `Invalid language selected (${CONFIG.language})
 const Language = require(LANG_FILE);
 
 if (CONFIG.language != "EN")
-    Object.apply(Language, require(`./languages/EN.json`));
+    Object.apply({ }, require(`./languages/EN.json`), Language);
 
 /******************************************************************************************
  * Get Value
@@ -42,10 +44,10 @@ const Parse = function(key, values)
 {
     var result = Value(key);
 
-    result = result.replace("%skill_name%", CONFIG.skill.name);
+    result = result.replaceAll("%skill_name%", CONFIG.skill.name);
     
     for (const key in values)
-        result = result.replace(`%${key}%`, values[key]);
+        result = result.replaceAll(`%${key}%`, values[key]);
 
     return result;
 }

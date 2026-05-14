@@ -29,7 +29,8 @@ const SaveDeviceQueue = async function (playlist) {
             }
         );
 
-    const hash = crypto.hash('sha1', playlist.Device);
+    const hash = crypto.createHash('sha1').update(playlist.Device).digest('hex');
+    //crypto.hash('sha1', playlist.Device);
 
     return fs.promises.writeFile(
         `${DATA_DIR}/${hash}.jmp`,
@@ -40,6 +41,7 @@ const SaveDeviceQueue = async function (playlist) {
                 token: playlist.playbackToken,
                 queue
             },
+            null,
             2
         )
     );
@@ -56,11 +58,16 @@ const Save = function () {
         if (!playlist.Dirty || playlist.Saving)
             continue;
 
+        playlist.Dirty = false;
+        playlist.Saving = true;
+
         const promise = SaveDeviceQueue(playlist).then(
             () => {
                 Logger.Debug(`[Playlist ${playlist.Id}]`, "Saved queue to local file.");
-                playlist.Dirty = false;
-                playlist.Saving = false;
+            }
+        ).finally(
+            () => {
+            playlist.Saving = false;
             }
         );
 
@@ -80,7 +87,7 @@ const LoadDeviceQueue = async function ({ deviceID, position, token, queue }) {
     const itemIDs = queue.map(({ id }) => id);
 
     for (let i = 0; i < itemIDs.length; i += limit) {
-        const { status, items } = await JellyFin.Music({ ids: itemIDs.splice(i, i + limit) });
+        const { status, items } = await JellyFin.Music({ ids: itemIDs.slice(i, i + limit) });
 
         if (!status)
             continue;

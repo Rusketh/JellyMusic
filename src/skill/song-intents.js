@@ -59,7 +59,7 @@ const Processor = async function (handlerInput, action = "play") {
 
             for (var item of songs.items) {
                 if (item.AlbumArtist && item.AlbumArtist.toLowerCase() == artist.Name.toLowerCase()) {
-                    album = item;
+                    song = item;
                     break;
                 }
             }

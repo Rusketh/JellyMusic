@@ -43,7 +43,7 @@ PlayList.clearRemainingItems = function()
     if (start >= this.Queue.length)
         return;
     
-    this.Queue = this.Queue.splice(start);
+    this.Queue.splice(start);
     this.Dirty = true;
 };
 
@@ -105,7 +105,7 @@ PlayList.shuffleRemainingItems = function(start, stop)
     start = start || this.Position + 1;
     stop = stop || this.Queue.length - 1;
 
-    if (start >= this.Position + 1)
+    if (start < this.Position + 1)
         start = this.Position + 1;
 
     if (stop > this.Queue.length - 1)
@@ -173,7 +173,7 @@ PlayList.nextItem = function()
 {
     var index = this.Position + 1;
 
-    if (index >= this.Queue.length - 1)
+    if (index >= this.Queue.length)
     {
         Logger.Debug(`[Playlist ${this.Id}]`, "Reached end of queue!");
         return false;

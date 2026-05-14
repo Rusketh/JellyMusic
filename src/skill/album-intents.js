@@ -105,7 +105,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
     if (!songs.status || !songs.items[0]) {
         const speech = LANGUAGE.Parse("ALBUM_NO_MUSIC", { album_name: slots.albumname.value });
 
-        return [{ status: false, speach1, speach2 }];
+        return [{ status: false, speech }];
     }
 
     const then = async function (data) {

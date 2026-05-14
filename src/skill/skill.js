@@ -52,6 +52,8 @@ const ExceptionEncounteredHandler = {
 const ErrorHandler = {
     canHandle: () => true,
     handle: function (handlerInput, error) {
+        const { responseBuilder } = handlerInput;
+        
         Logger.Error(`[Alexa Skill] Error handled: ${error.message}`);
         Logger.Error(error);
 

@@ -59,7 +59,7 @@ PlayListItem.getArtURL = function()
 {
     if (!this.Item.AlbumId) return;
 
-    const url = new URL(`Items/${this.Item.AlbumId}/Images/Primary`, CONFIG.jellyfin.host);
+    const url = new URL(`/Items/${this.Item.AlbumId}/Images/Primary`, CONFIG.jellyfin.host);
     if (this.Item.AlbumPrimaryImageTag) url.searchParams.append("tag", this.Item.AlbumPrimaryImageTag);
 
     return url.toString();
