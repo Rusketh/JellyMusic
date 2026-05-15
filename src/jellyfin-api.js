@@ -60,8 +60,8 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
 
         Logger.Debug("[JellyFin API]", `Response returned ${result.Items.length} items.`);
 
-        if (results.Items) {
-            for(const item in results.Items) {
+        if (result.Items) {
+            for(const item in result.Items) {
                 item.Name = _sanitize(item.Name);
                 item.Album = _sanitize(item.Album);
                 item.AlbumArtist = _sanitize(item.AlbumArtist);
