@@ -3,6 +3,23 @@ const https = require('https');
 const fuzzball = require('fuzzball');
 
 /*********************************************************************************
+ * UTility for sanatizing names.
+ */
+
+const _sanitize = function (s) {
+    if (!s)
+        return s;
+
+    return s
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/&/g, ' and ')
+        .replace(/[^a-zA-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+/*********************************************************************************
  * API Request
  */
 
@@ -42,6 +59,14 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
         var result = await response.json();
 
         Logger.Debug("[JellyFin API]", `Response returned ${result.Items.length} items.`);
+
+        if (results.Items) {
+            for(const item in results.Items) {
+                item.Name = _sanitize(item.Name);
+                item.Album = _sanitize(item.Album);
+                item.AlbumArtist = _sanitize(item.AlbumArtist);
+            }
+        }
 
         return { status: true, items: result.Items, index: result.StartIndex, count: result.TotalRecordCount };
     }
@@ -162,7 +187,7 @@ const FuzzySort = function(items, name, artist) {
     
     if (!items)
         return;
-    
+
     for(const item of items) {
         item.NameRelevance = name ? fuzzball.token_set_ratio(name, item.Name || '') : threshold;
         item.ArtistRelevance = artist ? fuzzball.token_set_ratio(artist, item.AlbumArtist || '') : threshold;
