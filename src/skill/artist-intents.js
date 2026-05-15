@@ -29,7 +29,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
 
     const artists = await JellyFin.Artists({ query: slots.artistname.value });
 
-    if (albums.status)
+    if (artists.status)
         artists.items = JellyFin.FuzzySort(artists.items, slots.artistname?.value);
 
     if (!artists.status || !artists.items[0]) {
