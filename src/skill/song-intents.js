@@ -27,6 +27,9 @@ const Processor = async function (handlerInput, action = "play") {
 
     const songs = await JellyFin.Music({ query: slots.songname.value });
 
+    if (songs.status)
+        songs.items = JellyFin.FuzzySort(songs.items, slots.songname?.value, slots.artistname?.value);
+
     if (!songs.status || !songs.items[0]) {
         Logger.Debug(`[Music Request]`, "Music not found.");
 
@@ -42,6 +45,9 @@ const Processor = async function (handlerInput, action = "play") {
         Logger.Debug(`[Music Request]`, `Requesting artist ${slots.artistname.value}.`);
 
         const artists = await JellyFin.Artists({ query: slots.artistname.value });
+
+        if (artists.status)
+            artists.items = JellyFin.FuzzySort(artists.items, slots.artistname?.value);
 
         if (!artists.status || !artists.items[0]) {
             Logger.Debug(`[Music Request]`, "No artist found.");

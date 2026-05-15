@@ -105,6 +105,8 @@ assert(CONFIG.jellyfin.key, `No Jellyfin api key defined.\nThis can set in CONFI
 
 CONFIG.jellyfin.limit = process.env.JELLYFIN_LIMIT || CONFIG.jellyfin.limit || 50;
 
+CONFIG.jellyfin.fuzzy = process.env.JELLYFIN_FUZZY || CONFIG.jellyfin.fuzzy || 65;
+
 /*********************************************************************************
  * Validate Skill CONFIG
  */

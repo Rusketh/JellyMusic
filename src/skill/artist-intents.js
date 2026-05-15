@@ -29,6 +29,9 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
 
     const artists = await JellyFin.Artists({ query: slots.artistname.value });
 
+    if (albums.status)
+        artists.items = JellyFin.FuzzySort(artists.items, slots.artistname?.value);
+
     if (!artists.status || !artists.items[0]) {
         Logger.Debug(`[Artist Request]`, "Artist not found.");
 

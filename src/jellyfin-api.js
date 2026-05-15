@@ -147,6 +147,31 @@ const Favourites = async function (userID, startIndex, limit) {
 };
 
 /*********************************************************************************
+ * Fuzzy Sort
+ */
+
+const threshold = CONFIG.jellyfin.fuzzy;
+
+const _filter = (item) => 
+    threshold <= 0 || (item.NameRelevance >= threshold && item.ArtistRelevance >= threshold);
+
+const _sort = (a, b) => 
+    (b.NameRelevance + b.ArtistRelevance) - (a.NameRelevance + a.ArtistRelevance);
+
+const FuzzySort = function(items, name, artist) {
+    
+    if (!items)
+        return;
+    
+    for(const item of items) {
+        item.NameRelevance = name ? fuzzball.token_set_ratio(name, item.Name || '') : threshold;
+        item.ArtistRelevance = artist ? fuzzball.token_set_ratio(artist, item.AlbumArtist || '') : threshold;
+    }
+
+    return items.filter(_filter).sort(_sort);
+};
+
+/*********************************************************************************
  * Exports
  */
 
@@ -157,5 +182,6 @@ module.exports = {
     MusicGenres,
     Playlists,
     Users,
-    Favourites
+    Favourites,
+    FuzzySort
 };

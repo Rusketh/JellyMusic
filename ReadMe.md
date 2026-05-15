@@ -140,29 +140,21 @@ The following environment variables are **required**:
 
 *  **`JELLYFIN_HOST`**: The public address of your Jellyfin server.
 
-
 *  **`JELLYFIN_LOCAL`**: **Optional** The full local address and port of your Jellyfin server, used when making API calls.
-  
 
 *  **`JELLYFIN_KEY`**: The API key for your Jellyfin server.
 
-  
-
 *  **`SKILL_NAME`**: The two-word name Alexa will use to refer to your Jellyfin server (e.g., "Jelly Music").
-
-  
 
 *  **`SKILL_ID`**: The full application id of your alexa skill (e.g amzn1.ask.skill.00000000-0000-0000-0000-000000000000)
 
-  
-
 *  **`PORT`**: The Port your server will use (remember to enable this port on Docker). *Defaults to 60648*.
 
-  
 *  **`LANGUAGE`**: Sets the language Alexa will respond in; *Defaults to EN*.
 
 * **`JELLYFIN_LIMIT`**: The maximum items requested from the Jellyfin API per request. *Defaults to 50*.
 
+*  **`JELLYFIN_FUZZY`**: The fuzzy search threshold (set to 0 to disable). *Defaults to 65*.
 
 **Note:** Your public address for the server needs to run on port `443`, and your reverse proxy should handle the redirect to the specified `PORT`.
 
