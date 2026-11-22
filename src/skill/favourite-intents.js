@@ -32,7 +32,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
     if (!users.status || !users.users[0]) {
         Logger.Debug(`[Favourite Request]`, "No user found.");
 
-        const speech = LANGUAGE.Parse("USER_NOTFOUND_BY_NAME", { username: slots.username.value });
+        const speech = LANGUAGE.Parse("USER_NOTFOUND_BY_NAME", { user_name: slots.username.value });
 
         return [{ status: false, speech }];
     }
@@ -50,7 +50,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
             return await submit(handlerInput, data);
     };
 
-    return [{ status: true, user, items: favourites.items }, then];
+    return [{ status: true, user, items: favourites.items, count: favourites.count }, then];
 };
 
 /*********************************************************************************
