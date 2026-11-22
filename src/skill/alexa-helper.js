@@ -46,6 +46,48 @@ const CreateHandler = function(type, callback)
 };
 
 /*********************************************************************************
+ * Apply Slot Synonyms
+ */
+
+// Replace a slot's heard value with the canonical value when Alexa matched it to one
+// of the skill's own slot values or synonyms (e.g. AMAZON.Musician extended with
+// "Cordrazine" and the synonym "quadrazine"). Only the skill's own authority is used,
+// so built-in Alexa entity matches never change what is searched for.
+
+const ApplySlotSynonyms = function(requestEnvelope)
+{
+    const slots = requestEnvelope.request.intent && requestEnvelope.request.intent.slots;
+
+    if (!slots)
+        return;
+
+    for (const slot of Object.values(slots))
+    {
+        const authorities = (slot.resolutions && slot.resolutions.resolutionsPerAuthority) || [];
+
+        for (const authority of authorities)
+        {
+            if (!authority.authority || !authority.authority.startsWith("amzn1.er-authority.echo-sdk."))
+                continue;
+
+            if (!authority.status || authority.status.code !== "ER_SUCCESS_MATCH")
+                continue;
+
+            const name = authority.values && authority.values[0] && authority.values[0].value && authority.values[0].value.name;
+
+            if (!name)
+                continue;
+
+            Logger.Debug(`[Slots]`, `${slot.name}: "${slot.value}" resolved to "${name}"`);
+
+            slot.value = name;
+
+            break;
+        }
+    }
+};
+
+/*********************************************************************************
  * Create Intent Handler
  */
 
@@ -77,6 +119,8 @@ const CreateIntent = function(intent, callback)
 
                 try
                 {
+                    ApplySlotSynonyms(handlerInput.requestEnvelope);
+
                     return await callback(handlerInput);
                 }
                 catch(err)
