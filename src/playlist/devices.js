@@ -173,9 +173,22 @@ const onPlaybackStopped = function (handlerInput) {
 
     const playlist = getPlayList(deviceID);
 
-    playlist.stop();
+    const { token, offsetInMilliseconds } = requestEnvelope.request;
 
-    Logger.Debug(`[Device ${playlist.Id}]`, "Playback stopped!");
+    // ai_comment: A stop for a stream that has already been replaced (e.g. after "next") must not
+    // ai_comment: touch the new current item or its token.
+    if (token && playlist.playbackToken && token != playlist.playbackToken) {
+        Logger.Debug(`[Device ${playlist.Id}]`, `Ignoring stop for replaced token ${token}.`);
+        return responseBuilder.getResponse();
+    }
+
+    // ai_comment: Keep the position Alexa reports so "resume" continues from where playback stopped,
+    // ai_comment: and forget the active token so the resume is not rejected as "already playing".
+    playlist.pause(offsetInMilliseconds);
+
+    playlist.playbackToken = null;
+
+    Logger.Debug(`[Device ${playlist.Id}]`, `Playback stopped at ${offsetInMilliseconds} ms.`);
 
     return responseBuilder.getResponse();
 };
