@@ -58,7 +58,7 @@ const Processer = async function (handlerInput, action = "play", buildQueue, sub
             return await submit(handlerInput, data);
     };
 
-    return [{ status: true, artist, items: songs.items }, then];
+    return [{ status: true, artist, items: songs.items, count: songs.count }, then];
 };
 
 /*********************************************************************************
