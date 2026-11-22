@@ -150,7 +150,7 @@ const PlayAlbumIntent = CreateQueueIntent(
             speech = LANGUAGE.Parse("ALBUM_PLAYING_BY_ARTIST",
                 {
                     album_name: album.Name,
-                    album_artist: album.AlbumArtist
+                    artist_name: album.AlbumArtist
                 }
             );
 
@@ -201,7 +201,7 @@ const ShuffleAlbumIntent = CreateQueueIntent(
             speech = LANGUAGE.Parse("ALBUM_SHUFFLE_BY_ARTIST",
                 {
                     album_name: album.Name,
-                    album_artist: album.AlbumArtist
+                    artist_name: album.AlbumArtist
                 }
             );
 
@@ -253,7 +253,7 @@ const QueueAlbumIntent = CreateQueueIntent(
             speech = LANGUAGE.Parse("ALBUM_QUEUED_BY_ARTIST",
                 {
                     album_name: album.Name,
-                    album_artist: album.AlbumArtist
+                    artist_name: album.AlbumArtist
                 }
             );
 

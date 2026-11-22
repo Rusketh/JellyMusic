@@ -60,6 +60,42 @@ const MakeAPIRequest = async function (url, { ids, query, albums, artists, genre
 };
 
 /*********************************************************************************
+ * Fuzzy API Request
+ */
+
+// Alexa's speech recognition often returns a slightly different spelling from the
+// library (e.g. US "rumors" for the album "Rumours"), which Jellyfin's search does not
+// match. When a name search finds nothing, fetch the full list of names and keep those
+// that score at least FUZZY_MIN_SCORE (0-100) against what Alexa heard, best first.
+
+const FUZZY_MIN_SCORE = 85;
+
+const FUZZY_MAX_ITEMS = 10000;
+
+const FuzzyAPIRequest = async function (makeURL, query, startIndex, limit) {
+    const result = await MakeAPIRequest(makeURL(), query, startIndex, limit);
+
+    if (!result.status || result.items.length || !query || !query.query || startIndex)
+        return result;
+
+    const all = await MakeAPIRequest(makeURL(), { ...query, query: undefined }, 0, FUZZY_MAX_ITEMS);
+
+    if (!all.status)
+        return result;
+
+    const items = all.items
+        .map(item => ({ item, score: fuzzball.WRatio(query.query, item.Name || "") }))
+        .filter(({ score }) => score >= FUZZY_MIN_SCORE)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit || CONFIG.jellyfin.limit)
+        .map(({ item }) => item);
+
+    Logger.Debug("[JellyFin API]", `No match for "${query.query}"; fuzzy search of ${all.items.length} names found ${items.length}` + (items[0] ? `, best "${items[0].Name}".` : "."));
+
+    return { status: true, items, index: 0, count: items.length };
+};
+
+/*********************************************************************************
  * Query Endpoints
  */
 
@@ -75,20 +111,29 @@ const Music = async function (query, startIndex, limit) {
 };
 
 const Artists = async function (query, startIndex, limit) {
-    const url = new URL("/Artists", CONFIG.jellyfin.local);
+    const makeURL = function () {
+        const url = new URL("/Artists", CONFIG.jellyfin.local);
 
-    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
+        url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
 
-    return await MakeAPIRequest(url, query, startIndex, limit);
+        return url;
+    };
+
+    return await FuzzyAPIRequest(makeURL, query, startIndex, limit);
 };
 
 const Albums = async function (query, startIndex, limit) {
-    const url = new URL("/Items", CONFIG.jellyfin.local);
+    const makeURL = function () {
+        const url = new URL("/Items", CONFIG.jellyfin.local);
 
-    url.searchParams.append("includeItemTypes", "MusicAlbum");
-    url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
+        url.searchParams.append("Recursive", true);
+        url.searchParams.append("includeItemTypes", "MusicAlbum");
+        url.searchParams.append("fields", "Id,Name,PrimaryImageTag,Genres");
 
-    return await MakeAPIRequest(url, query, startIndex, limit);
+        return url;
+    };
+
+    return await FuzzyAPIRequest(makeURL, query, startIndex, limit);
 };
 
 const MusicGenres = async function (query, startIndex, limit) {
